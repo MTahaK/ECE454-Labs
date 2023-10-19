@@ -23,5 +23,4 @@ void *m_realloc(void *ptr, size_t size);
 
 // Heap list:
 struct h_Node *create_h_node(int status, size_t size, void *c_blk);
-struct h_List *init_empty_list();
 void h_layout(struct h_Node *ptr);
