@@ -72,12 +72,9 @@ void *m_malloc(size_t size){
 			choice->SIZE = size;
 			choice->STATUS = 1;
 			choice->NEXT = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
-			
 		} 
 	}
-
 }
-
 void h_layout(struct h_Node *ptr)
 {
 	while (ptr != NULL)
