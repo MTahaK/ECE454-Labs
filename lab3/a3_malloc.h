@@ -2,17 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+const int HEAP_SIZE = 10000;
+
 struct h_Node{
-	int STATUS;
-	size_t SIZE;
-	void *c_blk;
-	void *n_blk;
+	int STATUS;				// 0: free, 1: allocated
+	size_t SIZE;            // Size of block in bytes
+	void *c_blk;            // Start address of current block
+	void *n_blk;            // Start address of next block
 	struct h_Node *NEXT;
 };
 
 struct h_List{
 	struct h_Node *list_head;
-};
+} h_list;
 
 // Memory management functions:
 int m_init(void);
