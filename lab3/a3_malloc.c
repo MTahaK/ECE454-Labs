@@ -93,6 +93,7 @@ void m_free(void *ptr){
 					block->NEXT = next->NEXT;
 					next = next->NEXT;
 				}
+				block = block->NEXT;
 			}
 		}
 		
