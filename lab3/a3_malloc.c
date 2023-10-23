@@ -96,10 +96,7 @@ void m_free(void *ptr){
 				block = block->NEXT;
 			}
 		}
-		
 	}
-	
-
 }
 void h_layout(struct h_Node *ptr)
 {
@@ -140,13 +137,17 @@ int main(int argc, char *argv[])
 	struct h_Node *node2 = m_malloc(50);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	struct h_Node *node3 = m_malloc(50);
+	struct h_Node *node3 = m_malloc(80);
 	h_layout(h_list.list_head);
 	printf("================\n");
 	struct h_Node *node4 = m_malloc(50);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	printf("%lu\n", sizeof(struct h_Node));
+	printf("FREEING\n");
+	m_free(node3);
+	h_layout(h_list.list_head);
+	printf("================\n");
+
 
 	
 	return 0;
