@@ -75,6 +75,31 @@ void *m_malloc(size_t size){
 		} 
 	}
 }
+
+void m_free(void *ptr){
+	// Function will also perform coalescence through the list after the freed
+	// block after freeing it.
+	if(ptr != NULL){
+		struct h_Node *block = (struct h_Node*) ptr;
+		if(block->STATUS == 1){
+			block->STATUS = 0;
+			// Coalescence
+			while(block){
+				if(block->NEXT != NULL && block->NEXT->STATUS == 0){
+					struct h_Node *next = block->NEXT;
+					block->SIZE = block->SIZE + next->SIZE;
+					block->n_blk = next->n_blk;
+					next->c_blk = NULL;
+					block->NEXT = next->NEXT;
+					next = next->NEXT;
+				}
+			}
+		}
+		
+	}
+	
+
+}
 void h_layout(struct h_Node *ptr)
 {
 	while (ptr != NULL)
