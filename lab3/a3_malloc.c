@@ -85,7 +85,8 @@ void m_free(void *ptr){
 			block->STATUS = 0;
 			// Coalescence
 			while(block){
-				if(block->NEXT != NULL && block->NEXT->STATUS == 0){
+				if(block->NEXT != NULL && block->NEXT->STATUS == 0 && block->STATUS == 0){
+					printf("Coalescing blocks of size %lu and %lu\n", block->SIZE, block->NEXT->SIZE);
 					struct h_Node *next = block->NEXT;
 					block->SIZE = block->SIZE + next->SIZE;
 					block->n_blk = next->n_blk;
@@ -134,7 +135,7 @@ int main(int argc, char *argv[])
 	struct h_Node *node1 = m_malloc(50);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	struct h_Node *node2 = m_malloc(50);
+	struct h_Node *node2 = m_malloc(60);
 	h_layout(h_list.list_head);
 	printf("================\n");
 	struct h_Node *node3 = m_malloc(80);
@@ -145,6 +146,12 @@ int main(int argc, char *argv[])
 	printf("================\n");
 	printf("FREEING\n");
 	m_free(node3);
+	h_layout(h_list.list_head);
+	printf("================\n");
+	m_free(node2);
+	h_layout(h_list.list_head);
+	printf("================\n");
+	m_free(node4);
 	h_layout(h_list.list_head);
 	printf("================\n");
 
