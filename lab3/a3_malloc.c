@@ -96,8 +96,25 @@ void m_free(void *ptr){
 				}
 				block = block->NEXT;
 			}
+			struct h_Node *t = h_list.list_head;
+			while(t!=block){
+				if(t->NEXT != NULL && t->NEXT->STATUS == 0 && t->STATUS == 0){
+					printf("Coalescing blocks of size %lu and %lu\n", t->SIZE, t->NEXT->SIZE);
+					struct h_Node *next = t->NEXT;
+					t->SIZE = t->SIZE + next->SIZE;
+					t->n_blk = next->n_blk;
+					next->c_blk = NULL;
+					t->NEXT = next->NEXT;
+					next = next->NEXT;
+			}
+			t = t->NEXT;
 		}
+		}
+		
+		
 	}
+	
+
 }
 void h_layout(struct h_Node *ptr)
 {
