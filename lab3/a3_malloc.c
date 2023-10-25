@@ -61,7 +61,8 @@ void *m_malloc(size_t size){
 			choice->SIZE = size;
 			choice->STATUS = 1;
 			choice->NEXT = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
-		} 
+		}
+		return choice;
 	}
 }
 
@@ -115,23 +116,28 @@ void *m_realloc(void *ptr, size_t size){
 					next->c_blk = NULL;
 					block->NEXT = next->NEXT;
 					next = next->NEXT;
+					return block;
 				}
 				else if(block->NEXT->SIZE + block->SIZE > size){
-					struct h_Node *new_node = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node) + 1; // Includes overhead for new node
-					new_node->n_blk = choice->n_blk;
-					choice->n_blk = choice->c_blk + size; // from start of node, add SIZE and size of h_Node to get end.
-					new_node->c_blk = choice->n_blk + sizeof(struct h_Node) + 1; // Offset includes overhead of new node: choice->c_blk + size + sizeof(struct h_Node)
-					new_node->SIZE = choice->SIZE - (size + sizeof(struct h_Node));
-					new_node->NEXT = choice->NEXT;
+					struct h_Node *new_node = (struct h_Node*) block->c_blk + size + sizeof(struct h_Node) + 1; // Includes overhead for new node
+					new_node->n_blk = block->n_blk;
+					block->n_blk = block->c_blk + size; // from start of node, add SIZE and size of h_Node to get end.
+					new_node->c_blk = block->n_blk + sizeof(struct h_Node) + 1; // Offset includes overhead of new node: choice->c_blk + size + sizeof(struct h_Node)
+					new_node->SIZE = block->SIZE - (size + sizeof(struct h_Node));
+					new_node->NEXT = block->NEXT;
 					new_node->STATUS = 0;
 				
-					choice->SIZE = size;
-					choice->STATUS = 1;
-					choice->NEXT = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
+					block->SIZE = size;
+					block->STATUS = 1;
+					block->NEXT = (struct h_Node*) block->c_blk + size + sizeof(struct h_Node);
 				}
 			}
+
+			m_free(ptr);
+			return m_malloc(size);
 		}
 	}
+	return NULL;
 }
 
 void h_layout(struct h_Node *ptr)
