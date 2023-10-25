@@ -95,10 +95,11 @@ void *m_malloc(size_t size){
 			// NEXT of choice to be the address where the requested size
 			// bounds it to.
 			
-			struct h_Node *new_node = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
+			struct h_Node *new_node = (struct h_Node*) choice->c_blk + size;
 			new_node->n_blk = choice->n_blk;
 			choice->n_blk = choice->c_blk + size;
-			new_node->c_blk = choice->n_blk;
+			printf("c_blk: %p\n", choice->n_blk + sizeof(struct h_Node));
+			new_node->c_blk = choice->n_blk + sizeof(struct h_Node);
 			printf("Size setting: %lu - %lu - %lu\n", choice->SIZE, size, sizeof(struct h_Node));
 			new_node->SIZE = choice->SIZE - (size + sizeof(struct h_Node));
 			printf("New node size: %lu\n", new_node->SIZE);
@@ -107,7 +108,7 @@ void *m_malloc(size_t size){
 		
 			choice->SIZE = size;
 			choice->STATUS = 1;
-			choice->NEXT = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
+			choice->NEXT = (struct h_Node*) choice->c_blk + size;
 			return choice;
 		} 
 	}
