@@ -22,6 +22,50 @@ int m_init(void){
 
 	return ret;
 }
+// void *m_malloc(size_t size){
+// 	// Search list from start, choose block with closest size to requested size
+// 	struct h_Node *t = h_list.list_head;
+// 	int closest = INT_MAX;
+// 	struct h_Node *choice = NULL;
+// 	while(t!=NULL){
+// 		// printf("Status: %d, Size: %lu\n", t->STATUS, t->SIZE);
+// 		if(t->STATUS == 0){
+// 			if(t->SIZE == size){
+// 				choice = t;
+// 				choice->STATUS = 1;
+// 				return choice;
+// 			} // Block with exact size not found, keep looking
+// 			if(t->SIZE - size < closest && t->SIZE > size){
+				
+// 				closest = abs(t->SIZE - size);
+// 				choice = t;
+// 			}
+// 		} 
+// 		t = t->NEXT;
+// 	}
+// 	// Choice node found: if block size is larger than requested size, split
+// 	if(choice != NULL){
+// 		if(choice->SIZE > size){
+// 			// Split. Essentially, restrict choice to requested size, set
+// 			// NEXT of choice to be the address where the requested size
+// 			// bounds it to.
+			
+// 			struct h_Node *new_node = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node) + 1; // Includes overhead for new node
+// 			new_node->n_blk = choice->n_blk;
+// 			choice->n_blk = choice->c_blk + size; // from start of node, add SIZE and size of h_Node to get end.
+// 			new_node->c_blk = choice->n_blk + sizeof(struct h_Node) + 1; // Offset includes overhead of new node: choice->c_blk + size + sizeof(struct h_Node)
+// 			new_node->SIZE = choice->SIZE - (size + sizeof(struct h_Node));
+// 			new_node->NEXT = choice->NEXT;
+// 			new_node->STATUS = 0;
+		
+// 			choice->SIZE = size;
+// 			choice->STATUS = 1;
+// 			choice->NEXT = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
+// 		}
+// 		return choice;
+// 	}
+// }
+
 void *m_malloc(size_t size){
 	// Search list from start, choose block with closest size to requested size
 	struct h_Node *t = h_list.list_head;
@@ -35,7 +79,7 @@ void *m_malloc(size_t size){
 				choice->STATUS = 1;
 				return choice;
 			} // Block with exact size not found, keep looking
-			if(t->SIZE - size < closest && t->SIZE > size){
+			if( t->SIZE - size < closest && t->SIZE > size){
 				
 				closest = abs(t->SIZE - size);
 				choice = t;
@@ -46,14 +90,15 @@ void *m_malloc(size_t size){
 	// Choice node found: if block size is larger than requested size, split
 	if(choice != NULL){
 		if(choice->SIZE > size){
+			// printf("Choice Status: %d, Size: %lu, Next: %p, Start: %p, End: %p\n", choice->STATUS, choice->SIZE, choice->NEXT, choice->c_blk, choice->n_blk);
 			// Split. Essentially, restrict choice to requested size, set
 			// NEXT of choice to be the address where the requested size
 			// bounds it to.
 			
-			struct h_Node *new_node = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node) + 1; // Includes overhead for new node
+			struct h_Node *new_node = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
 			new_node->n_blk = choice->n_blk;
-			choice->n_blk = choice->c_blk + size; // from start of node, add SIZE and size of h_Node to get end.
-			new_node->c_blk = choice->n_blk + sizeof(struct h_Node) + 1; // Offset includes overhead of new node: choice->c_blk + size + sizeof(struct h_Node)
+			choice->n_blk = choice->c_blk + size;
+			new_node->c_blk = choice->n_blk + 1;
 			new_node->SIZE = choice->SIZE - (size + sizeof(struct h_Node));
 			new_node->NEXT = choice->NEXT;
 			new_node->STATUS = 0;
@@ -61,8 +106,8 @@ void *m_malloc(size_t size){
 			choice->SIZE = size;
 			choice->STATUS = 1;
 			choice->NEXT = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
-		}
-		return choice;
+			return choice;
+		} 
 	}
 }
 
