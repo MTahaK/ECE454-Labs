@@ -99,7 +99,9 @@ void *m_malloc(size_t size){
 			new_node->n_blk = choice->n_blk;
 			choice->n_blk = choice->c_blk + size;
 			new_node->c_blk = choice->n_blk;
+			printf("Size setting: %lu - %lu - %lu\n", choice->SIZE, size, sizeof(struct h_Node));
 			new_node->SIZE = choice->SIZE - (size + sizeof(struct h_Node));
+			printf("New node size: %lu\n", new_node->SIZE);
 			new_node->NEXT = choice->NEXT;
 			new_node->STATUS = 0;
 		
@@ -178,9 +180,11 @@ void *m_realloc(void *ptr, size_t size){
 			// 	}
 			// }
 			printf("Reallocating block starting at %p and of size %lu\n", block->c_blk, block->SIZE);
-			m_free(ptr);
 			struct h_Node *new_block = (struct h_Node*)m_malloc(size); 
+			printf("New status: %d\n", new_block->STATUS);
+			m_free(ptr);
 			printf("Returning newly allocated block at %p of size %lu\n", new_block->c_blk, new_block->SIZE);
+			return new_block;
 		}
 	}
 	return NULL;
@@ -188,11 +192,14 @@ void *m_realloc(void *ptr, size_t size){
 
 void h_layout(struct h_Node *ptr)
 {
+	int total_usage = 0;
 	while (ptr != NULL)
 	{
-		printf("Block Address: %p, Size: %lu, Status: %d\n", ptr->c_blk, ptr->SIZE, ptr->STATUS);
+		printf("Block Address: %p, Size: %lu, True Size: %lu Status: %d\n", ptr->c_blk, ptr->SIZE, ptr->SIZE + sizeof(struct h_Node), ptr->STATUS);
+		total_usage+=ptr->SIZE + sizeof(struct h_Node);
 		ptr = ptr->NEXT;
 	}
+	printf("Total heap size: %d\n", total_usage);
 }
 
 int main(int argc, char *argv[])
@@ -216,19 +223,19 @@ int main(int argc, char *argv[])
 	printf("\n================\n");
 	h_layout(h_list.list_head);
 	printf("================\n");
-	struct h_Node *node = m_malloc(50);
+	struct h_Node *node = m_malloc(10);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	struct h_Node *node1 = m_malloc(50);
+	struct h_Node *node1 = m_malloc(20);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	struct h_Node *node2 = m_malloc(50);
+	struct h_Node *node2 = m_malloc(30);
 	h_layout(h_list.list_head);
 	printf("================\n");
 	struct h_Node *node3 = m_malloc(80);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	struct h_Node *node4 = m_malloc(50);
+	struct h_Node *node4 = m_malloc(90);
 	h_layout(h_list.list_head);
 	printf("================\n");
 	printf("FREEING\n");
@@ -238,9 +245,16 @@ int main(int argc, char *argv[])
 	m_free(node4);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	m_realloc(node1, (size_t)500);
+	struct h_Node *node_check = m_realloc(node1, (size_t)500);
 	h_layout(h_list.list_head);
 	printf("================\n");
+	m_realloc(node, (size_t)70);
+	h_layout(h_list.list_head);
+	printf("================\n");
+	m_realloc(node_check, (size_t)60);
+	h_layout(h_list.list_head);
+	printf("================\n");
+	
 
 
 	
