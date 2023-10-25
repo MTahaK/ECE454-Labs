@@ -123,7 +123,7 @@ void m_free(void *ptr){
 				if(block->NEXT != NULL && block->NEXT->STATUS == 0 && block->STATUS == 0){
 					printf("Coalescing blocks of size %lu and %lu\n", block->SIZE, block->NEXT->SIZE);
 					struct h_Node *next = block->NEXT;
-					block->SIZE = block->SIZE + next->SIZE;
+					block->SIZE = block->SIZE + next->SIZE + sizeof(struct h_Node);
 					block->n_blk = next->n_blk;
 					next->c_blk = NULL;
 					block->NEXT = next->NEXT;
@@ -136,7 +136,7 @@ void m_free(void *ptr){
 				if(t->NEXT != NULL && t->NEXT->STATUS == 0 && t->STATUS == 0){
 					printf("Coalescing blocks of size %lu and %lu\n", t->SIZE, t->NEXT->SIZE);
 					struct h_Node *next = t->NEXT;
-					t->SIZE = t->SIZE + next->SIZE;
+					t->SIZE = t->SIZE + next->SIZE + sizeof(struct h_Node);
 					t->n_blk = next->n_blk;
 					next->c_blk = NULL;
 					t->NEXT = next->NEXT;
