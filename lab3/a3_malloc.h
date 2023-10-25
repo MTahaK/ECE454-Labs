@@ -11,7 +11,18 @@ struct h_Node{
 	void *n_blk;            // Start address of next block
 	struct h_Node *NEXT;
 };
-
+/* * 
+ * NOTES:
+ * c_blk ALWAYS starts AFTER the overhead from the size of h_Node. That is, each block
+ * of memory starts at the start address, and consists of 'data' starting from 
+ * start_addr + sizeof(h_Node). 
+ * 
+ * n_blk is ALWAYS at c_blk + SIZE.
+ * NEXT points to the start of the header of the next node. That is, it points to 
+ * the start address of the next node, AKA at c_blk (of the next node) - sizeof(h_Node).
+ * Therefore, the NEXT node starts right after n_blk, and the c_blk of the NEXT node
+ * starts at n_blk + sizeof(h_Node).
+ */
 struct h_List{
 	struct h_Node *list_head;
 } h_list;

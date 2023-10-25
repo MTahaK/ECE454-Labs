@@ -5,16 +5,6 @@
 #include <limits.h>
 #include "a3_malloc.h"
 
-// Coalescence
-// if(t->NEXT != NULL && t->NEXT->STATUS == 0){
-// 				struct h_Node *next = t->NEXT;
-// 				t->SIZE = t->SIZE + next->SIZE;
-// 				t->n_blk = next->n_blk;
-// 				next->c_blk = NULL;
-// 				t->NEXT = next->NEXT;
-// 				next = next->NEXT;
-// 				continue;
-// 			}
 int m_init(void){
 	void *start_addr = sbrk(0);
 	int ret = brk(HEAP_SIZE + start_addr);
@@ -23,7 +13,7 @@ int m_init(void){
 
 	
 	struct h_Node *new_node = (struct h_Node*) start_addr;
-	new_node->c_blk = start_addr + sizeof(struct h_Node);
+	new_node->c_blk = start_addr + sizeof(struct h_Node); // c_blk starts from data
 	new_node->STATUS = 0;
 	new_node->SIZE = HEAP_SIZE - sizeof(struct h_Node);
 	new_node->n_blk = new_node->c_blk + new_node->SIZE;
@@ -45,7 +35,7 @@ void *m_malloc(size_t size){
 				choice->STATUS = 1;
 				return choice;
 			} // Block with exact size not found, keep looking
-			if( t->SIZE - size < closest && t->SIZE > size){
+			if(t->SIZE - size < closest && t->SIZE > size){
 				
 				closest = abs(t->SIZE - size);
 				choice = t;
@@ -56,15 +46,14 @@ void *m_malloc(size_t size){
 	// Choice node found: if block size is larger than requested size, split
 	if(choice != NULL){
 		if(choice->SIZE > size){
-			// printf("Choice Status: %d, Size: %lu, Next: %p, Start: %p, End: %p\n", choice->STATUS, choice->SIZE, choice->NEXT, choice->c_blk, choice->n_blk);
 			// Split. Essentially, restrict choice to requested size, set
 			// NEXT of choice to be the address where the requested size
 			// bounds it to.
 			
-			struct h_Node *new_node = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
+			struct h_Node *new_node = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node) + 1; // Includes overhead for new node
 			new_node->n_blk = choice->n_blk;
-			choice->n_blk = choice->c_blk + size;
-			new_node->c_blk = choice->n_blk + 1;
+			choice->n_blk = choice->c_blk + size; // from start of node, add SIZE and size of h_Node to get end.
+			new_node->c_blk = choice->n_blk + sizeof(struct h_Node) + 1; // Offset includes overhead of new node: choice->c_blk + size + sizeof(struct h_Node)
 			new_node->SIZE = choice->SIZE - (size + sizeof(struct h_Node));
 			new_node->NEXT = choice->NEXT;
 			new_node->STATUS = 0;
@@ -106,16 +95,45 @@ void m_free(void *ptr){
 					next->c_blk = NULL;
 					t->NEXT = next->NEXT;
 					next = next->NEXT;
-			}
+				}
 			t = t->NEXT;
-		}
-		}
-		
-		
+			}
+		}	
 	}
-	
-
 }
+
+void *m_realloc(void *ptr, size_t size){
+	if(ptr != NULL){
+		struct h_Node *block = (struct h_Node*) ptr;
+		if(block->STATUS == 1){
+			if(block->NEXT->STATUS == 0){
+				if(block->NEXT->SIZE + block->SIZE == size){
+					// Rare case, but will handle regardless
+					struct h_Node *next = block->NEXT;
+					block->SIZE = size;
+					block->n_blk = next->n_blk;
+					next->c_blk = NULL;
+					block->NEXT = next->NEXT;
+					next = next->NEXT;
+				}
+				else if(block->NEXT->SIZE + block->SIZE > size){
+					struct h_Node *new_node = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node) + 1; // Includes overhead for new node
+					new_node->n_blk = choice->n_blk;
+					choice->n_blk = choice->c_blk + size; // from start of node, add SIZE and size of h_Node to get end.
+					new_node->c_blk = choice->n_blk + sizeof(struct h_Node) + 1; // Offset includes overhead of new node: choice->c_blk + size + sizeof(struct h_Node)
+					new_node->SIZE = choice->SIZE - (size + sizeof(struct h_Node));
+					new_node->NEXT = choice->NEXT;
+					new_node->STATUS = 0;
+				
+					choice->SIZE = size;
+					choice->STATUS = 1;
+					choice->NEXT = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
+				}
+			}
+		}
+	}
+}
+
 void h_layout(struct h_Node *ptr)
 {
 	while (ptr != NULL)
