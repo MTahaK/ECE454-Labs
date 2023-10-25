@@ -179,7 +179,7 @@ void *m_realloc(void *ptr, size_t size){
 			}
 
 			m_free(ptr);
-			return m_malloc(size);
+			return m_malloc(size); 
 		}
 	}
 	return NULL;
