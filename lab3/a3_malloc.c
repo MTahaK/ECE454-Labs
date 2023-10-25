@@ -98,7 +98,7 @@ void *m_malloc(size_t size){
 			struct h_Node *new_node = (struct h_Node*) choice->c_blk + size + sizeof(struct h_Node);
 			new_node->n_blk = choice->n_blk;
 			choice->n_blk = choice->c_blk + size;
-			new_node->c_blk = choice->n_blk + 1;
+			new_node->c_blk = choice->n_blk;
 			new_node->SIZE = choice->SIZE - (size + sizeof(struct h_Node));
 			new_node->NEXT = choice->NEXT;
 			new_node->STATUS = 0;
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
 	struct h_Node *node1 = m_malloc(50);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	struct h_Node *node2 = m_malloc(60);
+	struct h_Node *node2 = m_malloc(50);
 	h_layout(h_list.list_head);
 	printf("================\n");
 	struct h_Node *node3 = m_malloc(80);
@@ -234,10 +234,10 @@ int main(int argc, char *argv[])
 	m_free(node3);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	m_free(node2);
+	m_free(node4);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	m_free(node4);
+	m_realloc(node1, (size_t)500);
 	h_layout(h_list.list_head);
 	printf("================\n");
 
