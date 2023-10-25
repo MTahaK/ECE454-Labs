@@ -152,34 +152,35 @@ void *m_realloc(void *ptr, size_t size){
 	if(ptr != NULL){
 		struct h_Node *block = (struct h_Node*) ptr;
 		if(block->STATUS == 1){
-			if(block->NEXT->STATUS == 0){
-				if(block->NEXT->SIZE + block->SIZE == size){
-					// Rare case, but will handle regardless
-					struct h_Node *next = block->NEXT;
-					block->SIZE = size;
-					block->n_blk = next->n_blk;
-					next->c_blk = NULL;
-					block->NEXT = next->NEXT;
-					next = next->NEXT;
-					return block;
-				}
-				else if(block->NEXT->SIZE + block->SIZE > size){
-					struct h_Node *new_node = (struct h_Node*) block->c_blk + size + sizeof(struct h_Node) + 1; // Includes overhead for new node
-					new_node->n_blk = block->n_blk;
-					block->n_blk = block->c_blk + size; // from start of node, add SIZE and size of h_Node to get end.
-					new_node->c_blk = block->n_blk + sizeof(struct h_Node) + 1; // Offset includes overhead of new node: choice->c_blk + size + sizeof(struct h_Node)
-					new_node->SIZE = block->SIZE - (size + sizeof(struct h_Node));
-					new_node->NEXT = block->NEXT;
-					new_node->STATUS = 0;
+			// if(block->NEXT->STATUS == 0){
+			// 	if(block->NEXT->SIZE + block->SIZE == size){
+			// 		// Rare case, but will handle regardless
+			// 		struct h_Node *next = block->NEXT;
+			// 		block->SIZE = size;
+			// 		block->n_blk = next->n_blk;
+			// 		next->c_blk = NULL;
+			// 		block->NEXT = next->NEXT;
+			// 		next = next->NEXT;
+			// 		return block;
+			// 	}
+			// 	else if(block->NEXT->SIZE + block->SIZE > size){
+			// 		struct h_Node *new_node = (struct h_Node*) block->c_blk + size + sizeof(struct h_Node) + 1; // Includes overhead for new node
+			// 		new_node->n_blk = block->n_blk;
+			// 		block->n_blk = block->c_blk + size; // from start of node, add SIZE and size of h_Node to get end.
+			// 		new_node->c_blk = block->n_blk + sizeof(struct h_Node) + 1; // Offset includes overhead of new node: choice->c_blk + size + sizeof(struct h_Node)
+			// 		new_node->SIZE = block->SIZE - (size + sizeof(struct h_Node));
+			// 		new_node->NEXT = block->NEXT;
+			// 		new_node->STATUS = 0;
 				
-					block->SIZE = size;
-					block->STATUS = 1;
-					block->NEXT = (struct h_Node*) block->c_blk + size + sizeof(struct h_Node);
-				}
-			}
-
+			// 		block->SIZE = size;
+			// 		block->STATUS = 1;
+			// 		block->NEXT = (struct h_Node*) block->c_blk + size + sizeof(struct h_Node);
+			// 	}
+			// }
+			printf("Reallocating block starting at %p and of size %lu\n", block->c_blk, block->SIZE);
 			m_free(ptr);
-			return m_malloc(size); 
+			struct h_Node *new_block = (struct h_Node*)m_malloc(size); 
+			printf("Returning newly allocated block at %p of size %lu\n", new_block->c_blk, new_block->SIZE);
 		}
 	}
 	return NULL;
