@@ -26,6 +26,18 @@ struct a_test3 {
 } table3[10];
 struct a_test3 *p3, *q3;
 
+// Attempt at optimizing
+struct a_test3_opt {
+    
+    short s;
+    int k;
+    float f;
+    char c;
+    long l;
+    double d; 
+} table3_opt[10];
+struct a_test3_opt *p3_opt, *q3_opt;
+
 int main(void){
     
     printf("a_test1:\n");
@@ -80,6 +92,24 @@ int main(void){
         
         size_t difference = (size_t)((char*)&table3[i] - (char*)&table3[i-1]);
         printf("Difference in addresses (length of table3[%d]): %lu bytes\n", i-1, difference);
+    }
+
+    printf("\n\na_test3_opt:\n");
+    // a_test3_opt:
+    // a:
+    printf("Char: %lu, Short: %lu, Int: %lu, Long: %lu, Float: %lu, Double: %lu\n", sizeof(char), sizeof(short), sizeof(int), sizeof(long), sizeof(float), sizeof(double));
+    // b:
+    printf("Size of table3_opt[0]: %lu, Size of table3_opt: %lu\n",sizeof(table3_opt[0]), sizeof(table3_opt));
+    // c:
+    printf("Alignment of table3_opt[0]: %lu\n", _Alignof(table3_opt[0]));  // _Alignof operator used to get alignment
+    printf("Address of table3_opt[0]: %p\n\n\n", (void*)&table3_opt[0]);
+    // d:
+    for(int i = 1; i < 10; i++) {
+        printf("Address of table3_opt[%d]: %p\n", i-1, (void*)&table3_opt[i-1]);
+        printf("Address of table3_opt[%d]: %p\n", i, (void*)&table3_opt[i]);
+        
+        size_t difference = (size_t)((char*)&table3_opt[i] - (char*)&table3_opt[i-1]);
+        printf("Difference in addresses (length of table3_opt[%d]): %lu bytes\n", i-1, difference);
     }
 
 }
