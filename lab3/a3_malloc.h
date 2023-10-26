@@ -3,10 +3,6 @@
 #include <string.h>
 
 const int HEAP_SIZE = 10000;
-int mem_usage = 0;
-// Memory usage of the entire heap. This therefore includes the headers of each block.
-// Each header (AKA each h_Node) is 40 bytes. This is set to sizeof(h_Node) upon  
-// initialization of the heap.
 struct h_Node{
 	int STATUS;				// 0: free, 1: allocated
 	size_t SIZE;            // Size of block in bytes
