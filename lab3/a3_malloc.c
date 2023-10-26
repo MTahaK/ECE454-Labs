@@ -6,6 +6,20 @@
 #include <time.h>
 #include "a3_malloc.h"
 
+/* * 
+// NOTES:
+// I have defined an operation to be one of the following:
+// 
+// Arithmetic Operations
+// Assignment Operations
+// Memory Accesses
+// Conditional Checks
+// Function Calls
+// Loop Iterations
+// Return Statements
+// Pointer Operations
+ */
+int num_ops = 0;
 
 int m_init(void){
 	void *start_addr = sbrk(0);
@@ -30,27 +44,35 @@ void *m_malloc(size_t size){
 	// Search list from start, choose block with closest size to requested size
 	if(size > HEAP_SIZE){
 		printf("Allocation unsuccessful: Requested size too high.\n");
+		num_ops += 2;
 		return NULL;
 	}
 	struct h_Node *t = h_list.list_head;
 	int closest = INT_MAX;
 	struct h_Node *choice = NULL;
+	num_ops += 3;
 	while(t!=NULL){
+		num_ops += 1;
 		// printf("Status: %d, Size: %lu\n", t->STATUS, t->SIZE);
 		if(t->STATUS == 0){
+			
 			if(t->SIZE == size){
 				choice = t;
 				choice->STATUS = 1;
 				mem_usage += size + sizeof(struct h_Node);
+				num_ops += 5;
 				return choice;
-			} // Block with exact size not found, keep looking
+			}
+			num_ops += 2; // Block with exact size not found, keep looking
 			if( t->SIZE - size < closest && t->SIZE >= size + sizeof(struct h_Node)){
 				
 				closest = abs(t->SIZE - size);
 				choice = t;
+				num_ops += 3;
 			}
-		} 
+		}
 		t = t->NEXT;
+		num_ops += 2;
 	}
 	// Choice node found: if block size is larger than requested size, split
 	if(choice != NULL){
@@ -71,69 +93,96 @@ void *m_malloc(size_t size){
 			choice->STATUS = 1;
 			choice->NEXT = (struct h_Node*) choice->c_blk + size;
 			mem_usage += size + sizeof(struct h_Node);
+			num_ops += 13;
 			return choice;
 		} 
+		num_ops += 1;
 	}
+	num_ops += 1;
 	// Could not find block for size
 	printf("Allocation unsuccessful: Requested size too high, or heap is full.\n");
 }
 
 void m_free(void *ptr){
-	// Function will also perform coalescence through the list after the freed
-	// block after freeing it.
-	if(ptr != NULL){
-		struct h_Node *block = (struct h_Node*) ptr;
-		if(block->STATUS == 1){
-			printf("Freeing node of size %lu\n", block->SIZE);
-			block->STATUS = 0;
-			mem_usage = mem_usage - block->SIZE;
-			// Coalescence
-			while(block){
-				if(block->NEXT != NULL && block->NEXT->STATUS == 0 && block->STATUS == 0){
-					printf("Coalescing blocks of size %lu and %lu\n", block->SIZE, block->NEXT->SIZE);
-					struct h_Node *next = block->NEXT;
-					block->SIZE = block->SIZE + next->SIZE + sizeof(struct h_Node);
-					mem_usage = mem_usage - next->SIZE - sizeof(struct h_Node);
-					block->n_blk = next->n_blk;
-					next->c_blk = NULL;
-					block->NEXT = next->NEXT;
-					next = next->NEXT;
-					
-				}
-				block = block->NEXT;
-			}
-			struct h_Node *t = h_list.list_head;
-			while(t!=block){
-				if(t->NEXT != NULL && t->NEXT->STATUS == 0 && t->STATUS == 0){
-					printf("Coalescing blocks of size %lu and %lu\n", t->SIZE, t->NEXT->SIZE);
-					struct h_Node *next = t->NEXT;
-					t->SIZE = t->SIZE + next->SIZE + sizeof(struct h_Node);
-					mem_usage = mem_usage - next->SIZE - sizeof(struct h_Node);
-					t->n_blk = next->n_blk;
-					next->c_blk = NULL;
-					t->NEXT = next->NEXT;
-					next = next->NEXT;
-				}
-			t = t->NEXT;
-			}
-		}	
-	}
+    // Function will also perform coalescence through the list after the freed
+    // block after freeing it.
+    num_ops += 1;  // For the if(ptr != NULL) check
+    if(ptr != NULL){
+        struct h_Node *block = (struct h_Node*) ptr;
+        num_ops += 1;  // For the assignment and casting of ptr to block
+        num_ops += 1;  // For the if(block->STATUS == 1) check
+        if(block->STATUS == 1){
+            printf("Freeing node of size %lu\n", block->SIZE);
+            block->STATUS = 0;
+            num_ops += 2;  // For the STATUS assignment and subtraction
+            mem_usage = mem_usage - block->SIZE;
+            // Coalescence
+            while(block){
+                num_ops += 1;  // For the while(block) loop
+                if(block->NEXT != NULL && block->NEXT->STATUS == 0 && block->STATUS == 0){
+                    num_ops += 3;  // For the if condition checks
+                    printf("Coalescing blocks of size %lu and %lu\n", block->SIZE, block->NEXT->SIZE);
+                    struct h_Node *next = block->NEXT;
+                    block->SIZE = block->SIZE + next->SIZE + sizeof(struct h_Node);
+                    num_ops += 5;  // For the assignments and arithmetic operations
+                    mem_usage = mem_usage - next->SIZE - sizeof(struct h_Node);
+                    block->n_blk = next->n_blk;
+                    next->c_blk = NULL;
+                    block->NEXT = next->NEXT;
+                    next = next->NEXT;
+                    num_ops += 5;  // For the assignments and pointer operations
+                }
+                block = block->NEXT;
+                num_ops += 1;  // For block = block->NEXT assignment
+            }
+            struct h_Node *t = h_list.list_head;
+            num_ops += 1;  // For the assignment of t
+            while(t!=block){
+                num_ops += 1;  // For the while(t!=block) loop
+                if(t->NEXT != NULL && t->NEXT->STATUS == 0 && t->STATUS == 0){
+                    num_ops += 3;  // For the if condition checks
+                    printf("Coalescing blocks of size %lu and %lu\n", t->SIZE, t->NEXT->SIZE);
+                    struct h_Node *next = t->NEXT;
+                    t->SIZE = t->SIZE + next->SIZE + sizeof(struct h_Node);
+                    num_ops += 5;  // For the assignments and arithmetic operations
+                    mem_usage = mem_usage - next->SIZE - sizeof(struct h_Node);
+                    t->n_blk = next->n_blk;
+                    next->c_blk = NULL;
+                    t->NEXT = next->NEXT;
+                    next = next->NEXT;
+                    num_ops += 5;  // For the assignments and pointer operations
+                }
+                t = t->NEXT;
+                num_ops += 1;  // For t = t->NEXT assignment
+            }
+        }   
+    }
 }
 
+
 void *m_realloc(void *ptr, size_t size){
-	if(ptr != NULL){
-		struct h_Node *block = (struct h_Node*) ptr;
-		if(block->STATUS == 1){
-			
-			printf("Reallocating block starting at %p and of size %lu\n", block->c_blk, block->SIZE);
-			struct h_Node *new_block = (struct h_Node*)m_malloc(size); 
-			m_free(ptr);
-			printf("Returning newly allocated block at %p of size %lu\n", new_block->c_blk, new_block->SIZE);
-			return new_block;
-		}
-	}
-	return NULL;
+    num_ops += 1;  // For the if(ptr != NULL) check
+    if(ptr != NULL){
+        struct h_Node *block = (struct h_Node*) ptr;
+        num_ops += 1;  // For the assignment and casting of ptr to block
+        
+        num_ops += 1;  // For the if(block->STATUS == 1) check
+        if(block->STATUS == 1){
+            printf("Reallocating block starting at %p and of size %lu\n", block->c_blk, block->SIZE);
+            struct h_Node *new_block = (struct h_Node*)m_malloc(size);
+            num_ops += 1;  // For the new_block assignment (m_malloc call includes its own num_ops increments)
+            
+            m_free(ptr);  // m_free call includes its own num_ops increments
+            
+            printf("Returning newly allocated block at %p of size %lu\n", new_block->c_blk, new_block->SIZE);
+            return new_block;
+            num_ops += 1;  // For returning new_block
+        }
+    }
+    num_ops += 1;  // For returning NULL
+    return NULL;
 }
+
 
 void h_layout(struct h_Node *ptr)
 {
@@ -167,81 +216,103 @@ int m_check(void){
 int main(int argc, char *argv[])
 {
 
-	if(m_init() == 0){
-		printf("Heap allocation successful. Allocated heap of %d.\n", HEAP_SIZE);
-	} else{
-		printf("Heap allocation unsuccessful.\n");
-	}
-	printf("================\n");							// Space Utilization: 0.0040
+    if(m_init() == 0){
+        printf("Heap allocation successful. Allocated heap of %d.\n", HEAP_SIZE);
+    } else{
+        printf("Heap allocation unsuccessful.\n");
+    }
+    printf("================\n");							// Space Utilization: 0.0040
 
-	h_layout(h_list.list_head);
-	printf("================\n");
+    h_layout(h_list.list_head);
+    printf("================\n");
 
-	clock_t start_time = clock();
-	char *pt1 = m_malloc(2000);								// Space Utilization: 0.2080
-	clock_t end_time = clock();
-	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);	
+    num_ops = 0;
+    clock_t start_time = clock();
+    char *pt1 = m_malloc(2000);								// Space Utilization: 0.2080, Num. Ops: 24, Time = 0.000005, Ops per sec: 4,800,000
+    clock_t end_time = clock();
 
-	printf("Memory allocated by last call: %d\n", mem_usage);
-	h_layout(h_list.list_head);
-	printf("================\n");
+    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);	
+    printf("Total memory allocated after last call: %d\n", mem_usage);
+	printf("Number of operations in last call: %d\n", num_ops);
 
-	start_time = clock();
-	char *pt2 = m_malloc(500);								// Space Utilization: 0.2620
-	end_time = clock();
-	
-	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);								
-	printf("Memory allocated by last call: %d\n", mem_usage);
-	h_layout(h_list.list_head);
-	printf("================\n");
+    h_layout(h_list.list_head);
+    printf("================\n");
 
-	start_time = clock();
-	char *pt3 = m_malloc(300);								// Space Utilization: 0.2960
-	end_time = clock();
-	
-	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
-	printf("Memory allocated by last call: %d\n", mem_usage);
-	h_layout(h_list.list_head);
-	printf("================\n");
+    num_ops = 0;
+    start_time = clock();
+    char *pt2 = m_malloc(500);								// Space Utilization: 0.2620, Num. Ops: 27, Time = 0.000005, Ops per sec: 5,400,000
+    end_time = clock();
+    
+    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);								
+    printf("Total memory allocated after last call: %d\n", mem_usage);
+	printf("Number of operations in last call: %d\n", num_ops);
 
-	start_time = clock();
-	m_free(pt2);											// Space Utilization: 0.2460
-	end_time = clock();
-	
-	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
-	h_layout(h_list.list_head);
-	printf("================\n");
+    h_layout(h_list.list_head);
+    printf("================\n");
 
-	start_time = clock();
-	char *pt4 = m_malloc(1500);								// Space Utilization: 0.4000
-	end_time = clock();
-	
-	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
-	printf("Memory allocated by last call: %d\n", mem_usage);
-	h_layout(h_list.list_head);
-	printf("================\n");
+    num_ops = 0;
+    start_time = clock();
+    char *pt3 = m_malloc(300);								// Space Utilization: 0.2960, Num. Ops: 30, Time = 0.000005, Ops per sec: 6,000,000
+    end_time = clock();
+    
+    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
+    printf("Total memory allocated after last call: %d\n", mem_usage);
+	printf("Number of operations in last call: %d\n", num_ops);
 
-	start_time = clock();
-	char *pt5 = m_realloc(pt3, 800);						// Space Utilization: 0.4200
-	end_time = clock();
-	
-	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
-	printf("Memory allocated by last call: %d\n", mem_usage);
-	h_layout(h_list.list_head);
-	printf("================\n");
+    h_layout(h_list.list_head);
+    printf("================\n");
 
-	start_time = clock();
-	m_malloc(10e9);											// Space Utilization: 0.4200
-	end_time = clock();
-	
-	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
-	printf("================\n");
-	h_layout(h_list.list_head);
-	printf("================\n");
+    num_ops = 0;
+    start_time = clock();
+    m_free(pt2);											// Space Utilization: 0.2460, Num. Ops: 20, Time = 0.000006, Ops per sec: 3,333,333.33
+    end_time = clock();
+    
+    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
+	printf("Number of operations in last call: %d\n", num_ops);
 
-	
-	return 0;
+    h_layout(h_list.list_head);
+    printf("================\n");
+
+    num_ops = 0;
+    start_time = clock();
+    char *pt4 = m_malloc(1500);								// Space Utilization: 0.4000, Num. Ops: 35, Time = 0.000005, Ops per sec: 7,000,000
+    end_time = clock();
+    
+    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
+    printf("Total memory allocated after last call: %d\n", mem_usage);
+	printf("Number of operations in last call: %d\n", num_ops);
+
+    h_layout(h_list.list_head);
+    printf("================\n");
+
+    num_ops = 0;
+    start_time = clock();
+    char *pt5 = m_realloc(pt3, 800);						// Space Utilization: 0.4200, Num. Ops: 79, Time = 0.000020, Ops per sec: 3,950,000
+    end_time = clock();
+    
+    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
+    printf("Total memory allocated after last call: %d\n", mem_usage);
+	printf("Number of operations in last call: %d\n", num_ops);
+
+    h_layout(h_list.list_head);
+    printf("================\n");
+
+    num_ops = 0;
+    start_time = clock();
+    m_malloc(10e9);											// Space Utilization: 0.4200, Num. Ops: 2, Time = 0.000005, Ops per sec: 400,000
+    end_time = clock();
+    
+    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
+	printf("Number of operations in last call: %d\n", num_ops);
+
+    printf("================\n");
+    h_layout(h_list.list_head);
+    printf("================\n");
+
+    
+    return 0;
 }
+
 
 
 // h_layout(h_list.list_head);
