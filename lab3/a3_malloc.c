@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <time.h>
 #include "a3_malloc.h"
 
 
@@ -175,30 +176,65 @@ int main(int argc, char *argv[])
 
 	h_layout(h_list.list_head);
 	printf("================\n");
+
+	clock_t start_time = clock();
 	char *pt1 = m_malloc(2000);								// Space Utilization: 0.2080
+	clock_t end_time = clock();
+	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);	
+
 	printf("Memory allocated by last call: %d\n", mem_usage);
 	h_layout(h_list.list_head);
 	printf("================\n");
+
+	start_time = clock();
 	char *pt2 = m_malloc(500);								// Space Utilization: 0.2620
+	end_time = clock();
+	
+	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);								
 	printf("Memory allocated by last call: %d\n", mem_usage);
 	h_layout(h_list.list_head);
 	printf("================\n");
+
+	start_time = clock();
 	char *pt3 = m_malloc(300);								// Space Utilization: 0.2960
+	end_time = clock();
+	
+	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
 	printf("Memory allocated by last call: %d\n", mem_usage);
 	h_layout(h_list.list_head);
 	printf("================\n");
+
+	start_time = clock();
 	m_free(pt2);											// Space Utilization: 0.2460
+	end_time = clock();
+	
+	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
 	h_layout(h_list.list_head);
 	printf("================\n");
+
+	start_time = clock();
 	char *pt4 = m_malloc(1500);								// Space Utilization: 0.4000
+	end_time = clock();
+	
+	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
 	printf("Memory allocated by last call: %d\n", mem_usage);
 	h_layout(h_list.list_head);
 	printf("================\n");
+
+	start_time = clock();
 	char *pt5 = m_realloc(pt3, 800);						// Space Utilization: 0.4200
+	end_time = clock();
+	
+	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
 	printf("Memory allocated by last call: %d\n", mem_usage);
 	h_layout(h_list.list_head);
 	printf("================\n");
+
+	start_time = clock();
 	m_malloc(10e9);											// Space Utilization: 0.4200
+	end_time = clock();
+	
+	printf("Time: %f\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
 	printf("================\n");
 	h_layout(h_list.list_head);
 	printf("================\n");
