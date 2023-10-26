@@ -5,6 +5,7 @@
 #include <limits.h>
 #include "a3_malloc.h"
 
+
 int m_init(void){
 	void *start_addr = sbrk(0);
 	int ret = brk(HEAP_SIZE + start_addr);
@@ -19,6 +20,7 @@ int m_init(void){
 	new_node->n_blk = new_node->c_blk + new_node->SIZE;
 	new_node->NEXT = NULL;
 	h_list.list_head = new_node;
+	mem_usage += sizeof(struct h_Node);
 
 	return ret;
 }
@@ -38,6 +40,7 @@ void *m_malloc(size_t size){
 			if(t->SIZE == size){
 				choice = t;
 				choice->STATUS = 1;
+				mem_usage += size + sizeof(struct h_Node);
 				return choice;
 			} // Block with exact size not found, keep looking
 			if( t->SIZE - size < closest && t->SIZE >= size + sizeof(struct h_Node)){
@@ -66,6 +69,7 @@ void *m_malloc(size_t size){
 			choice->SIZE = size;
 			choice->STATUS = 1;
 			choice->NEXT = (struct h_Node*) choice->c_blk + size;
+			mem_usage += size + sizeof(struct h_Node);
 			return choice;
 		} 
 	}
@@ -81,16 +85,19 @@ void m_free(void *ptr){
 		if(block->STATUS == 1){
 			printf("Freeing node of size %lu\n", block->SIZE);
 			block->STATUS = 0;
+			mem_usage = mem_usage - block->SIZE;
 			// Coalescence
 			while(block){
 				if(block->NEXT != NULL && block->NEXT->STATUS == 0 && block->STATUS == 0){
 					printf("Coalescing blocks of size %lu and %lu\n", block->SIZE, block->NEXT->SIZE);
 					struct h_Node *next = block->NEXT;
 					block->SIZE = block->SIZE + next->SIZE + sizeof(struct h_Node);
+					mem_usage = mem_usage - next->SIZE - sizeof(struct h_Node);
 					block->n_blk = next->n_blk;
 					next->c_blk = NULL;
 					block->NEXT = next->NEXT;
 					next = next->NEXT;
+					
 				}
 				block = block->NEXT;
 			}
@@ -100,6 +107,7 @@ void m_free(void *ptr){
 					printf("Coalescing blocks of size %lu and %lu\n", t->SIZE, t->NEXT->SIZE);
 					struct h_Node *next = t->NEXT;
 					t->SIZE = t->SIZE + next->SIZE + sizeof(struct h_Node);
+					mem_usage = mem_usage - next->SIZE - sizeof(struct h_Node);
 					t->n_blk = next->n_blk;
 					next->c_blk = NULL;
 					t->NEXT = next->NEXT;
@@ -128,14 +136,18 @@ void *m_realloc(void *ptr, size_t size){
 
 void h_layout(struct h_Node *ptr)
 {
-	int total_usage = 0;
+	int total = 0;
 	while (ptr != NULL)
 	{
 		printf("Block Address: %p, Size: %lu, True Size: %lu Status: %d\n", ptr->c_blk, ptr->SIZE, ptr->SIZE + sizeof(struct h_Node), ptr->STATUS);
-		total_usage+=ptr->SIZE + sizeof(struct h_Node);
+		total +=ptr->SIZE + sizeof(struct h_Node);
 		ptr = ptr->NEXT;
 	}
-	printf("Total heap size: %d\n", total_usage);
+	printf("\n");
+	if(!m_check()) printf("Memory consistency check: PASSED\n");
+	else printf("Memory consistency check: FAILED\n");
+	printf("Total heap size: %d, Total memory usage: %d\n", total, mem_usage);
+	printf("Space Utilization: %d / %d = %0.04f\n", mem_usage, total, (float)mem_usage/(float)total);
 }
 
 int m_check(void){
@@ -159,8 +171,44 @@ int main(int argc, char *argv[])
 	} else{
 		printf("Heap allocation unsuccessful.\n");
 	}
+	printf("================\n");							// Space Utilization: 0.0040
+
+	h_layout(h_list.list_head);
 	printf("================\n");
-	// h_layout(h_list.list_head);
+	char *pt1 = m_malloc(2000);								// Space Utilization: 0.2080
+	printf("Memory allocated by last call: %d\n", mem_usage);
+	h_layout(h_list.list_head);
+	printf("================\n");
+	char *pt2 = m_malloc(500);								// Space Utilization: 0.2620
+	printf("Memory allocated by last call: %d\n", mem_usage);
+	h_layout(h_list.list_head);
+	printf("================\n");
+	char *pt3 = m_malloc(300);								// Space Utilization: 0.2960
+	printf("Memory allocated by last call: %d\n", mem_usage);
+	h_layout(h_list.list_head);
+	printf("================\n");
+	m_free(pt2);											// Space Utilization: 0.2460
+	h_layout(h_list.list_head);
+	printf("================\n");
+	char *pt4 = m_malloc(1500);								// Space Utilization: 0.4000
+	printf("Memory allocated by last call: %d\n", mem_usage);
+	h_layout(h_list.list_head);
+	printf("================\n");
+	char *pt5 = m_realloc(pt3, 800);						// Space Utilization: 0.4200
+	printf("Memory allocated by last call: %d\n", mem_usage);
+	h_layout(h_list.list_head);
+	printf("================\n");
+	m_malloc(10e9);											// Space Utilization: 0.4200
+	printf("================\n");
+	h_layout(h_list.list_head);
+	printf("================\n");
+
+	
+	return 0;
+}
+
+
+// h_layout(h_list.list_head);
 	// printf("================\n");
 	// struct h_Node *node = m_malloc(10);
 	// h_layout(h_list.list_head);
@@ -193,32 +241,3 @@ int main(int argc, char *argv[])
 	// h_layout(h_list.list_head);
 	// printf("================\n");
 	// printf("%d\n", m_check());
-
-	h_layout(h_list.list_head);
-	printf("================\n");
-	char *pt1 = m_malloc(2000);
-	h_layout(h_list.list_head);
-	printf("================\n");
-	char *pt2 = m_malloc(500);
-	h_layout(h_list.list_head);
-	printf("================\n");
-	char *pt3 = m_malloc(300);
-	h_layout(h_list.list_head);
-	printf("================\n");
-	m_free(pt2);
-	h_layout(h_list.list_head);
-	printf("================\n");
-	char *pt4 = m_malloc(1500);
-	h_layout(h_list.list_head);
-	printf("================\n");
-	char *pt5 = m_realloc(pt3, 800);
-	h_layout(h_list.list_head);
-	printf("================\n");
-	m_malloc(10e9);
-	printf("================\n");
-	h_layout(h_list.list_head);
-	printf("================\n");
-
-	
-	return 0;
-}
