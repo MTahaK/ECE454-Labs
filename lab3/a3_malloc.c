@@ -6,6 +6,11 @@
 #include <time.h>
 #include "a3_malloc.h"
 
+
+// Memory usage of the entire heap. This therefore includes the headers of each block.
+// Each header (AKA each h_Node) is 40 bytes. This is set to sizeof(h_Node) upon  
+// initialization of the heap.
+int mem_usage = 0;
 /* * 
 // NOTES:
 // I have defined an operation to be one of the following:
@@ -21,9 +26,19 @@
  */
 int num_ops = 0;
 
+/* * 
+ * m_init:
+ * Initializes heap. Takes no arguments, returns 0 for success, -1 for failure.
+ * Initializes heap by creating an initial node pointed to by the h_list struct
+ * declared in the header file. This initial node spans the entire requested heap size.
+ * The SIZE of that node is HEAP_SIZE - 40, since 40 is the size of the h_Node struct
+ * and the SIZE of each node counts the size of the block allocated after the header
+ * portion of the block.
+ */
 int m_init(void){
 	void *start_addr = sbrk(0);
 	int ret = brk(HEAP_SIZE + start_addr);
+	if(ret != 0) return -1;
 	void *end_addr = sbrk(0);
 	printf("Start: %p. Increment: %d. End: %p\n", start_addr, HEAP_SIZE, end_addr);
 
@@ -39,6 +54,24 @@ int m_init(void){
 
 	return ret;
 }
+
+/* * 
+ * m_malloc:
+ * Takes in requested amount of memory as argument, returns void pointer to the start
+ * of the allocated block of memory (ie: at address c_blk - sizeof(h_Node)). 
+ * First, the function checks through the list for any blocks that exactly match the
+ * requested size. If so, it allocates that block and returns it. Otherwise, it 
+ * continues searching through the list, and finds the block with the closest size to 
+ * the requested size. Of note is how the function checks that such a block can support 
+ * not only the requested size, but the size of an additional heap node too. This is 
+ * because any such node, where the size is greater than the requested size, must be 
+ * split into two nodes - one for the request, and whatever is left over. Thus, for the 
+ * leftover memory, the free block must be large enough to support another h_Node 
+ * header.
+ * If such a node is found, as mentioned before, the node is then split into two 
+ * h_Nodes, with the first being returned to the user, and the next node being left 
+ * free.
+ */
 
 void *m_malloc(size_t size){
 	// Search list from start, choose block with closest size to requested size
@@ -103,6 +136,16 @@ void *m_malloc(size_t size){
 	printf("Allocation unsuccessful: Requested size too high, or heap is full.\n");
 }
 
+/* * 
+ * m_free:
+ * Takes in a pointer to a block of memory as an argument. Returns nothing.
+ * The function first deallocates the provided block of memory by setting its status
+ * to 0 (free). After this, the function starts from the provided block of memory, and
+ * works its way down the heap and coalesces any free nodes. Once this procedure has 
+ * finished, the function starts back at the beginning of the list, and coalesces any 
+ * free nodes down to the point of the provided block of memory. Therefore, this covers 
+ * coalescence of the entire list.
+ */
 void m_free(void *ptr){
     // Function will also perform coalescence through the list after the freed
     // block after freeing it.
@@ -159,7 +202,15 @@ void m_free(void *ptr){
     }
 }
 
-
+/* * 
+ * m_realloc:
+ * Takes in a pointer to a block of memory and the size to reallocate it as. Returns a
+ * pointer to the reallocated node.
+ * This function, after performing a few checks to ensure that reallocation of the
+ * provided block of memory is possible (ie: checks if the block has been allocated),
+ * simply calls m_malloc, followed by m_free, to reallocate a new block of memory for
+ * the user. 
+ */
 void *m_realloc(void *ptr, size_t size){
     num_ops += 1;  // For the if(ptr != NULL) check
     if(ptr != NULL){
@@ -183,13 +234,20 @@ void *m_realloc(void *ptr, size_t size){
     return NULL;
 }
 
-
+/* * 
+ * h_layout:
+ * Takes in a pointer to a memory block. Returns nothing.
+ * Traverses through heap list from the given location (usually the start of the list)
+ * and prints out information on each block of memory. Also performs a memory
+ * consistency check. At the end, it outputs information on the total heap size and
+ * utilization.
+ */
 void h_layout(struct h_Node *ptr)
 {
 	int total = 0;
 	while (ptr != NULL)
 	{
-		printf("Block Address: %p, Size: %lu, True Size: %lu Status: %d\n", ptr->c_blk, ptr->SIZE, ptr->SIZE + sizeof(struct h_Node), ptr->STATUS);
+		printf("Block Address: %p, End Addresss: %p, Size: %lu, True Size: %lu Status: %d\n", ptr->c_blk, ptr->n_blk, ptr->SIZE, ptr->SIZE + sizeof(struct h_Node), ptr->STATUS);
 		total +=ptr->SIZE + sizeof(struct h_Node);
 		ptr = ptr->NEXT;
 	}
@@ -200,6 +258,13 @@ void h_layout(struct h_Node *ptr)
 	printf("Space Utilization: %d / %d = %0.04f\n", mem_usage, total, (float)mem_usage/(float)total);
 }
 
+/* * 
+ * m_check:
+ * Takes in no arguments, and returns an int return code. A return of 0 is a pass, and
+ * a return of -1 is a fail.
+ * Traverses through heap and examines for any fragmentation in the heap structure.
+ * Outputs pass if no fragmentation is detected.
+ */
 int m_check(void){
 	struct h_Node *t = h_list.list_head;
 	while(t != NULL){
