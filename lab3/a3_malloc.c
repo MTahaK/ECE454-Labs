@@ -79,7 +79,7 @@ void *m_malloc(size_t size){
 				choice->STATUS = 1;
 				return choice;
 			} // Block with exact size not found, keep looking
-			if( t->SIZE - size < closest && t->SIZE > size){
+			if( t->SIZE - size < closest && t->SIZE >= size + sizeof(struct h_Node)){
 				
 				closest = abs(t->SIZE - size);
 				choice = t;
