@@ -25,6 +25,10 @@ int m_init(void){
 
 void *m_malloc(size_t size){
 	// Search list from start, choose block with closest size to requested size
+	if(size > HEAP_SIZE){
+		printf("Allocation unsuccessful: Requested size too high.\n");
+		return NULL;
+	}
 	struct h_Node *t = h_list.list_head;
 	int closest = INT_MAX;
 	struct h_Node *choice = NULL;
@@ -65,6 +69,8 @@ void *m_malloc(size_t size){
 			return choice;
 		} 
 	}
+	// Could not find block for size
+	printf("Allocation unsuccessful: Requested size too high, or heap is full.\n");
 }
 
 void m_free(void *ptr){
@@ -132,18 +138,21 @@ void h_layout(struct h_Node *ptr)
 	printf("Total heap size: %d\n", total_usage);
 }
 
+int m_check(void){
+	struct h_Node *t = h_list.list_head;
+	while(t != NULL){
+		if(t->NEXT != NULL && t->STATUS == 0 && t->NEXT->STATUS == t->STATUS){
+			// Adjacent free blocks, fail consistency check
+			return -1;
+		}
+		t = t->NEXT;
+	}
+	// Heap is consistent
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
-	// void *c_break = sbrk(0);
-	// printf("1 - %p \n", c_break);
-	// c_break = sbrk(0);
-	// printf("2 - %p \n", c_break);
-	// c_break = sbrk(0);
-	// printf("3 - %p \n", c_break);
-	// c_break = sbrk(0);
-	// printf("4 - %p \n", c_break);
-	// c_break = sbrk(0);
-	// printf("5 - %p \n", 5 + c_break);
 
 	if(m_init() == 0){
 		printf("Heap allocation successful. Allocated heap of %d.\n", HEAP_SIZE);
@@ -183,7 +192,7 @@ int main(int argc, char *argv[])
 	m_realloc(node_check, (size_t)60);
 	h_layout(h_list.list_head);
 	printf("================\n");
-	
+	printf("%d\n", m_check());
 
 
 	

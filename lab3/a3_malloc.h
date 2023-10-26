@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const int HEAP_SIZE = 10000;
+const int HEAP_SIZE = 100000;
 
 struct h_Node{
 	int STATUS;				// 0: free, 1: allocated
@@ -35,5 +35,5 @@ void *m_realloc(void *ptr, size_t size);
 
 
 // Heap list:
-struct h_Node *create_h_node(int status, size_t size, void *c_blk);
 void h_layout(struct h_Node *ptr);
+int m_check(void);
