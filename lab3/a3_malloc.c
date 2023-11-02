@@ -86,7 +86,6 @@ void *m_malloc(size_t size){
         printf("Allocation unsuccessful: Requested size too high.\n");
 		return NULL;
     }
-    
 	struct h_Node *t = h_list.list_head;
 	int closest = INT_MAX;
 	struct h_Node *choice = NULL;
@@ -122,8 +121,8 @@ void *m_malloc(size_t size){
 			// Split. Essentially, restrict choice to requested size, set
 			// NEXT of choice to be the address where the requested size
 			// bounds it to.
-			
 			struct h_Node *new_node = (struct h_Node*) choice->c_blk + size;
+            if(choice->n_blk == NULL) printf("here\n");
 			new_node->n_blk = choice->n_blk;
 			choice->n_blk = choice->c_blk + size;
 			new_node->c_blk = choice->n_blk + sizeof(struct h_Node);
@@ -311,7 +310,7 @@ int main(int argc, char *argv[])
 
     num_ops = 0;
     clock_t start_time = clock();
-    char *pt1 = m_malloc(2000);								// Space Utilization: 0.2080, Num. Ops: 24, Time = 0.000005, Ops per sec: 4,800,000
+    char *pt1 = m_malloc(36585);								// Space Utilization: 0.2080, Num. Ops: 24, Time = 0.000005, Ops per sec: 4,800,000
     clock_t end_time = clock();
 
     printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);	
@@ -341,103 +340,5 @@ int main(int argc, char *argv[])
     printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
     printf("Total memory allocated after last call: %d\n", mem_usage);
 	printf("Number of operations in last call: %d\n", num_ops);
-
-    h_layout(h_list.list_head);
-    printf("================\n");
-
-    num_ops = 0;
-    start_time = clock();
-    m_free(pt2);											// Space Utilization: 0.2460, Num. Ops: 20, Time = 0.000006, Ops per sec: 3,333,333.33
-    end_time = clock();
-    
-    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
-	printf("Number of operations in last call: %d\n", num_ops);
-
-    h_layout(h_list.list_head);
-    printf("================\n");
-
-    num_ops = 0;
-    start_time = clock();
-    char *pt4 = m_malloc(1500);								// Space Utilization: 0.4000, Num. Ops: 35, Time = 0.000005, Ops per sec: 7,000,000
-    end_time = clock();
-    
-    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
-    printf("Total memory allocated after last call: %d\n", mem_usage);
-	printf("Number of operations in last call: %d\n", num_ops);
-
-    h_layout(h_list.list_head);
-    printf("================\n");
-
-    num_ops = 0;
-    m_free(pt3);											// Space Utilization: 0.2460, Num. Ops: 20, Time = 0.000006, Ops per sec: 3,333,333.33
-    h_layout(h_list.list_head);
-    printf("================\n");
-
-    m_free(pt4);											// Space Utilization: 0.2460, Num. Ops: 20, Time = 0.000006, Ops per sec: 3,333,333.33
-    h_layout(h_list.list_head);
-    printf("================\n");
-    
-
-    num_ops = 0;
-    start_time = clock();
-    char *pt5 = m_realloc(pt3, 800);						// Space Utilization: 0.4200, Num. Ops: 79, Time = 0.000020, Ops per sec: 3,950,000
-    end_time = clock();
-    
-    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
-    printf("Total memory allocated after last call: %d\n", mem_usage);
-	printf("Number of operations in last call: %d\n", num_ops);
-
-    h_layout(h_list.list_head);
-    printf("================\n");
-
-    // num_ops = 0;
-    // start_time = clock();
-    // m_malloc(5000);											// Space Utilization: 0.4200, Num. Ops: 2, Time = 0.000005, Ops per sec: 400,000
-    // end_time = clock();
-    
-    // printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
-	// printf("Number of operations in last call: %d\n", num_ops);
-
-    // printf("================\n");
-    // h_layout(h_list.list_head);
-
-
-    
     return 0;
 }
-
-
-
-// h_layout(h_list.list_head);
-	// printf("================\n");
-	// struct h_Node *node = m_malloc(10);
-	// h_layout(h_list.list_head);
-	// printf("================\n");
-	// struct h_Node *node1 = m_malloc(20);
-	// h_layout(h_list.list_head);
-	// printf("================\n");
-	// struct h_Node *node2 = m_malloc(30);
-	// h_layout(h_list.list_head);
-	// printf("================\n");
-	// struct h_Node *node3 = m_malloc(80);
-	// h_layout(h_list.list_head);
-	// printf("================\n");
-	// struct h_Node *node4 = m_malloc(90);
-	// h_layout(h_list.list_head);
-	// printf("================\n");
-	// m_free(node3);
-	// h_layout(h_list.list_head);
-	// printf("================\n");
-	// m_free(node4);
-	// h_layout(h_list.list_head);
-	// printf("================\n");
-	// struct h_Node *node_check = m_realloc(node1, (size_t)500);
-	// h_layout(h_list.list_head);
-	// printf("================\n");
-	// m_realloc(node, (size_t)70);
-	// h_layout(h_list.list_head);
-	// printf("================\n");
-	// m_realloc(node_check, (size_t)60);
-	// h_layout(h_list.list_head);
-	// printf("================\n");
-	// printf("%d\n", m_check());
