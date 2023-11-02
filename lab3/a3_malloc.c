@@ -74,12 +74,19 @@ int m_init(void){
  */
 
 void *m_malloc(size_t size){
+    
 	// Search list from start, choose block with closest size to requested size
 	if(size > HEAP_SIZE){
 		printf("Allocation unsuccessful: Requested size too high.\n");
 		num_ops += 2;
 		return NULL;
 	}
+    
+    if(size >= HEAP_SIZE - mem_usage){
+        printf("Allocation unsuccessful: Requested size too high.\n");
+		return NULL;
+    }
+    
 	struct h_Node *t = h_list.list_head;
 	int closest = INT_MAX;
 	struct h_Node *choice = NULL;
@@ -92,7 +99,7 @@ void *m_malloc(size_t size){
 			if(t->SIZE == size){
 				choice = t;
 				choice->STATUS = 1;
-				mem_usage += size + sizeof(struct h_Node);
+				// mem_usage += size + sizeof(struct h_Node);
 				num_ops += 5;
 				return choice;
 			}
@@ -104,11 +111,13 @@ void *m_malloc(size_t size){
 				num_ops += 3;
 			}
 		}
+        
 		t = t->NEXT;
 		num_ops += 2;
 	}
 	// Choice node found: if block size is larger than requested size, split
 	if(choice != NULL){
+        
 		if(choice->SIZE > size){
 			// Split. Essentially, restrict choice to requested size, set
 			// NEXT of choice to be the address where the requested size
@@ -119,14 +128,18 @@ void *m_malloc(size_t size){
 			choice->n_blk = choice->c_blk + size;
 			new_node->c_blk = choice->n_blk + sizeof(struct h_Node);
 			new_node->SIZE = choice->SIZE - (size + sizeof(struct h_Node));
+            
 			new_node->NEXT = choice->NEXT;
 			new_node->STATUS = 0;
 		
+            
 			choice->SIZE = size;
 			choice->STATUS = 1;
+            
 			choice->NEXT = (struct h_Node*) choice->c_blk + size;
-			mem_usage += size + sizeof(struct h_Node);
+			// mem_usage += size + sizeof(struct h_Node);
 			num_ops += 13;
+            
 			return choice;
 		} 
 		num_ops += 1;
@@ -158,7 +171,7 @@ void m_free(void *ptr){
             printf("Freeing node of size %lu\n", block->SIZE);
             block->STATUS = 0;
             num_ops += 2;  // For the STATUS assignment and subtraction
-            mem_usage = mem_usage - block->SIZE;
+            // mem_usage = mem_usage - block->SIZE;
             // Coalescence
             while(block){
                 num_ops += 1;  // For the while(block) loop
@@ -168,7 +181,7 @@ void m_free(void *ptr){
                     struct h_Node *next = block->NEXT;
                     block->SIZE = block->SIZE + next->SIZE + sizeof(struct h_Node);
                     num_ops += 5;  // For the assignments and arithmetic operations
-                    mem_usage = mem_usage - next->SIZE - sizeof(struct h_Node);
+                    // mem_usage = mem_usage - next->SIZE - sizeof(struct h_Node);
                     block->n_blk = next->n_blk;
                     next->c_blk = NULL;
                     block->NEXT = next->NEXT;
@@ -188,7 +201,7 @@ void m_free(void *ptr){
                     struct h_Node *next = t->NEXT;
                     t->SIZE = t->SIZE + next->SIZE + sizeof(struct h_Node);
                     num_ops += 5;  // For the assignments and arithmetic operations
-                    mem_usage = mem_usage - next->SIZE - sizeof(struct h_Node);
+                    // mem_usage = mem_usage - next->SIZE - sizeof(struct h_Node);
                     t->n_blk = next->n_blk;
                     next->c_blk = NULL;
                     t->NEXT = next->NEXT;
@@ -245,10 +258,13 @@ void *m_realloc(void *ptr, size_t size){
 void h_layout(struct h_Node *ptr)
 {
 	int total = 0;
+    mem_usage = 0;
 	while (ptr != NULL)
 	{
 		printf("Block Address: %p, End Addresss: %p, Size: %lu, True Size: %lu Status: %d\n", ptr->c_blk, ptr->n_blk, ptr->SIZE, ptr->SIZE + sizeof(struct h_Node), ptr->STATUS);
 		total +=ptr->SIZE + sizeof(struct h_Node);
+        if(ptr->STATUS == 1) mem_usage += ptr->SIZE + sizeof(struct h_Node);
+        else if(ptr->STATUS == 0) mem_usage += sizeof(struct h_Node);
 		ptr = ptr->NEXT;
 	}
 	printf("\n");
@@ -353,6 +369,16 @@ int main(int argc, char *argv[])
     printf("================\n");
 
     num_ops = 0;
+    m_free(pt3);											// Space Utilization: 0.2460, Num. Ops: 20, Time = 0.000006, Ops per sec: 3,333,333.33
+    h_layout(h_list.list_head);
+    printf("================\n");
+
+    m_free(pt4);											// Space Utilization: 0.2460, Num. Ops: 20, Time = 0.000006, Ops per sec: 3,333,333.33
+    h_layout(h_list.list_head);
+    printf("================\n");
+    
+
+    num_ops = 0;
     start_time = clock();
     char *pt5 = m_realloc(pt3, 800);						// Space Utilization: 0.4200, Num. Ops: 79, Time = 0.000020, Ops per sec: 3,950,000
     end_time = clock();
@@ -364,17 +390,17 @@ int main(int argc, char *argv[])
     h_layout(h_list.list_head);
     printf("================\n");
 
-    num_ops = 0;
-    start_time = clock();
-    m_malloc(10e9);											// Space Utilization: 0.4200, Num. Ops: 2, Time = 0.000005, Ops per sec: 400,000
-    end_time = clock();
+    // num_ops = 0;
+    // start_time = clock();
+    // m_malloc(5000);											// Space Utilization: 0.4200, Num. Ops: 2, Time = 0.000005, Ops per sec: 400,000
+    // end_time = clock();
     
-    printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
-	printf("Number of operations in last call: %d\n", num_ops);
+    // printf("Time: %lf\n", ((double)(end_time - start_time)) / CLOCKS_PER_SEC);
+	// printf("Number of operations in last call: %d\n", num_ops);
 
-    printf("================\n");
-    h_layout(h_list.list_head);
-    printf("================\n");
+    // printf("================\n");
+    // h_layout(h_list.list_head);
+
 
     
     return 0;
