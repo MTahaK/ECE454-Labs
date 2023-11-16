@@ -1,3 +1,4 @@
 *.out
 lab3/.vscode/settings.json
 .vscode/settings.json
+lab4/a4_sync.cpp
