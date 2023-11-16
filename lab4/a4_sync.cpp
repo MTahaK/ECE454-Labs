@@ -6,8 +6,8 @@
 #include <chrono>
 #include <time.h>
 
-#define NUM_CUSTOMERS 50
-#define SERVICE_TIME_MAX 10
+#define NUM_CUSTOMERS 10
+#define SERVICE_TIME_MAX 30
 // Semaphore class to control access to the shared resources
 // USE SEMAPHORE TO LOCK QUEUE, NOT TELLERS.
 // CONSIDER THAT THE TELLERS ARE THE CONSUMERS AND THE CUSTOMERS ARE PRODUCERS.
@@ -103,7 +103,7 @@ int main(void){
     std::vector<Customer> customers;
     for (int i = 0; i < NUM_CUSTOMERS; ++i){
         customers.emplace_back(i);
-        // std::cout<<customers[i].serviceTime<<std::endl;
+        std::cout<< "Customer " << customers[i].id << " Service time: " << customers[i].serviceTime<<std::endl;
     }
     std::vector<std::thread> customerThreads;
 
