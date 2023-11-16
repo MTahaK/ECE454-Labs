@@ -14,6 +14,7 @@
 // THEREFORE, LOCK ACCESS TO THE QUEUE, NOT THE TELLERS.
 
 // ^ NO LONGER GOING WITH THIS IMPLEMENTATION: CUSTOMERS ARE THREADS, 3 TELLERS ARE LOCKED BEHIND SEMAPHORES.
+int threshold = 15;
 std::mutex coutMutex;
 class Semaphore{
 public:
@@ -56,8 +57,23 @@ public:
         return servicingThreadId;
     }
 
+    void startWaiting() {
+        waitingStart = std::chrono::high_resolution_clock::now();
+    }
+
+    void stopWaiting() {
+        waitingEnd = std::chrono::high_resolution_clock::now();
+    }
+
+    bool warnTime() const {
+        auto waited = std::chrono::duration_cast<std::chrono::seconds>(waitingEnd - waitingStart).count();
+        return waited > threshold;
+    }
+
 private:
     std::thread::id servicingThreadId; // Stores the ID of the servicing thread
+    std::chrono::high_resolution_clock::time_point waitingStart, waitingEnd;
+
 };
 
 class Teller{
