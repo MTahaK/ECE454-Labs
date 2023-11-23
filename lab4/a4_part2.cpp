@@ -146,7 +146,7 @@ int main()
 
         fineThread1.join();
         fineThread2.join();
-        
+
         auto endFine = std::chrono::high_resolution_clock::now();
         fineTimes.push_back(std::chrono::duration_cast<std::chrono::microseconds>(endFine - startFine).count());
     }
@@ -155,8 +155,28 @@ int main()
     long long coarseAverage = std::accumulate(coarseTimes.begin(), coarseTimes.end(), 0LL) / coarseTimes.size(); 
     long long fineAverage = std::accumulate(fineTimes.begin(), fineTimes.end(), 0LL) / fineTimes.size();
 
-    std::cout << "Average time for coarse-grained insertion: " << coarseAverage << " microseconds" << std::endl;
-    std::cout << "Average time for fine-grained insertion: " << fineAverage << " microseconds" << std::endl;
+    // !Course-grained locking should be faster than fine-grained locking, as the latter requires locking and unlocking
+    // !for each node in the list, while the former only requires locking and unlocking for the entire list. The higher
+    // !the number of nodes in the list, the more time fine-grained locking will take.
+    // !HOWEVER, the degree of contention between the threads in attempting to access the list will also affect the results.
+    // !Course-grained locking here completely locks the list, so the second thread will have to wait for the first thread,
+    // !destroying any potential parallelism. Fine-grained locking allows for more parallelism, as the threads will only
+    // !have to wait for each other when they are attempting to access the same node. Therefore, fine-grained locking may 
+    // !be faster here despite the lower overhead of course-grained locking.
+
+    // Course-grained results w/ average:
+    std::cout << "Coarse-grained locking times: ";
+    for (int i = 0; i < coarseTimes.size(); ++i) {
+        std::cout << coarseTimes[i] << " ";
+    }
+    std::cout << std::endl << "Average time for coarse-grained insertion: " << coarseAverage << " microseconds" << std::endl << std::endl;
+    
+    // Fine-grained results w/ average:
+    std::cout << "Fine-grained locking times: ";
+    for (int i = 0; i < fineTimes.size(); ++i) {
+        std::cout << fineTimes[i] << " ";
+    }
+    std::cout << std::endl << "Average time for fine-grained insertion: " << fineAverage << " microseconds" << std::endl;
 
     return 0;
 }
