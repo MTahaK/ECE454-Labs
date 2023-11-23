@@ -2,6 +2,8 @@
 #include <thread>
 #include <mutex>
 #include <vector>
+#include <chrono>
+#include <numeric>
 
 struct Node
 {
@@ -97,54 +99,64 @@ void threadInsert(LinkedList& list, int value, bool useFineGrained) {
     }
 }
 
-
-int main()
-{
-    LinkedList list1;
-    LinkedList list2;
+// Function to initialize a linked list with initial values. Used to restore original linked list
+// state after each iteration of insertions.
+void initializeList(LinkedList& list) {
+    // Clear the list if not empty
+    while (list.head != nullptr) {
+        Node* temp = list.head;
+        list.head = list.head->next;
+        delete temp;
+    }
 
     // Regular insertions
     int initialValues[] = {40, 50, 100, 120, 160, 180};
     for (int value : initialValues) {
-        list1.regularInsert(value);
-        list2.regularInsert(value);
+        list.regularInsert(value);
     }
-    // Traverse through linked list and print values in readable format
-    Node* curr = list1.head;
-    std::cout << "Regular insertions (data for both lists are identical currently): " << std::endl;
-    while(curr != nullptr){
-        std::cout << curr->data << " ";
-        curr = curr->next;
+}
+
+
+int main()
+{
+    LinkedList list1, list2;
+    std::vector<long long> coarseTimes, fineTimes;
+
+
+    for (int i = 0; i < 5; ++i) {
+        initializeList(list1); // Reset list1 to initial state
+
+        auto startCoarse = std::chrono::high_resolution_clock::now();
+        std::thread coarseThread1(threadInsert, std::ref(list1), 65, false);
+        std::thread coarseThread2(threadInsert, std::ref(list1), 77, false);
+
+        coarseThread1.join();
+        coarseThread2.join();
+
+        auto endCoarse = std::chrono::high_resolution_clock::now();
+        coarseTimes.push_back(std::chrono::duration_cast<std::chrono::microseconds>(endCoarse - startCoarse).count());
     }
-    std::cout<< std::endl;
 
-    // Course-grained insertions
+    for (int i = 0; i < 5; ++i) {
+        initializeList(list2); // Reset list2 to initial state
 
-    std::thread thread1(threadInsert, std::ref(list1), 65, false);
-    std::thread thread2(threadInsert, std::ref(list1), 77, false);
+        auto startFine = std::chrono::high_resolution_clock::now();
+        std::thread fineThread1(threadInsert, std::ref(list2), 65, true);
+        std::thread fineThread2(threadInsert, std::ref(list2), 77, true);
 
-    thread1.join();
-    thread2.join();
-
-    std::cout << "Course-Grained insertions: " << std::endl;
-    curr = list1.head;
-    while(curr != nullptr){
-        std::cout << curr->data << " ";
-        curr = curr->next;
+        fineThread1.join();
+        fineThread2.join();
+        
+        auto endFine = std::chrono::high_resolution_clock::now();
+        fineTimes.push_back(std::chrono::duration_cast<std::chrono::microseconds>(endFine - startFine).count());
     }
-    std::cout<< std::endl;
 
-    std::thread thread3(threadInsert, std::ref(list2), 65, true);
-    std::thread thread4(threadInsert, std::ref(list2), 77, true);
+    // Get averages for each insertion type
+    long long coarseAverage = std::accumulate(coarseTimes.begin(), coarseTimes.end(), 0LL) / coarseTimes.size(); 
+    long long fineAverage = std::accumulate(fineTimes.begin(), fineTimes.end(), 0LL) / fineTimes.size();
 
-    thread3.join();
-    thread4.join();
+    std::cout << "Average time for coarse-grained insertion: " << coarseAverage << " microseconds" << std::endl;
+    std::cout << "Average time for fine-grained insertion: " << fineAverage << " microseconds" << std::endl;
 
-    std::cout << "Fine-Grained insertions: " << std::endl;
-    curr = list2.head;
-    while(curr != nullptr){
-        std::cout << curr->data << " ";
-        curr = curr->next;
-    }
-    std::cout<< std::endl;
+    return 0;
 }
