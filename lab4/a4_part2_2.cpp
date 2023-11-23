@@ -1,3 +1,9 @@
+// ECE454 A4 Part 2 Question 2
+// By: Taha Khokhar, ID: 1005813069
+// Group #30
+// Lab Session 02
+// Date: 2023-11-23
+
 #include <iostream>
 #include <thread>
 #include <atomic>
