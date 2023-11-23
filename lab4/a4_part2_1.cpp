@@ -10,6 +10,11 @@
 #include <vector>
 #include <chrono>
 #include <numeric>
+#include <stdlib.h>
+#include <time.h>
+
+#define NUM_VALUES_TO_INSERT 10000
+#define NUM_THREADS 8
 
 struct Node
 {
@@ -78,7 +83,7 @@ class LinkedList
                     prev->nodeMutex.unlock(); // Release lock on previous node, as no longer needed
                     prev = curr;
                     curr = curr->next;
-                    prev->nodeMutex.lock(); // Acquire lock on next node
+                    prev->nodeMutex.lock(); // Acquire lock on next node in advancement
                 }
 
                 // Location for insertion found; lock for location is acquired
@@ -97,11 +102,15 @@ class LinkedList
         }
 };
 
-void threadInsert(LinkedList& list, int value, bool useFineGrained) {
+void threadInsert(LinkedList& list, std::vector<int> values, bool useFineGrained) {
     if (useFineGrained) {
-        list.fineGrainedInsert(value);
+        for (int value : values) {
+            list.fineGrainedInsert(value);
+        }
     } else {
-        list.coarseGrainedInsert(value);
+        for (int value : values) {
+            list.coarseGrainedInsert(value);
+        }
     }
 }
 
@@ -127,31 +136,56 @@ int main()
 {
     LinkedList list1, list2;
     std::vector<long long> coarseTimes, fineTimes;
+    std::vector<int> valuesToInsert;
+
+    srand(time(NULL));
+    // Initialize list with 1000 random values (seeded by time) to insert
+    for(int i = 0; i < NUM_VALUES_TO_INSERT; ++i){
+        valuesToInsert.push_back(rand() % NUM_VALUES_TO_INSERT);
+    }
+    
+    std::cout<< "Number of threads: " << NUM_THREADS << std::endl;
+    std::cout<< "Number of values to insert: " << NUM_VALUES_TO_INSERT << std::endl << std::endl;
 
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 1; i++) {
         initializeList(list1); // Reset list1 to initial state
 
         auto startCoarse = std::chrono::high_resolution_clock::now();
-        std::thread coarseThread1(threadInsert, std::ref(list1), 65, false);
-        std::thread coarseThread2(threadInsert, std::ref(list1), 77, false);
+        // Generate vector of NUM_THREADS threads, each running threadInsert.
 
-        coarseThread1.join();
-        coarseThread2.join();
+        std::vector<std::thread> coarseThreads;
+        for (int i = 0; i < NUM_THREADS; i++) {
+            coarseThreads.push_back(std::thread(threadInsert, std::ref(list1), valuesToInsert, false));
+        }
+        
+        // join all threads
+        for (auto& thread : coarseThreads) {
+            if (thread.joinable()) {
+                thread.join();
+            }
+        }
 
         auto endCoarse = std::chrono::high_resolution_clock::now();
         coarseTimes.push_back(std::chrono::duration_cast<std::chrono::microseconds>(endCoarse - startCoarse).count());
     }
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 1; i++) {
         initializeList(list2); // Reset list2 to initial state
 
         auto startFine = std::chrono::high_resolution_clock::now();
-        std::thread fineThread1(threadInsert, std::ref(list2), 65, true);
-        std::thread fineThread2(threadInsert, std::ref(list2), 77, true);
 
-        fineThread1.join();
-        fineThread2.join();
+        std::vector<std::thread> fineThreads;
+        for (int i = 0; i < NUM_THREADS; i++){
+            fineThreads.push_back(std::thread(threadInsert, std::ref(list2), valuesToInsert, true));
+        }
+
+        // join all threads
+        for (auto& thread : fineThreads) {
+            if (thread.joinable()) {
+                thread.join();
+            }
+        }
 
         auto endFine = std::chrono::high_resolution_clock::now();
         fineTimes.push_back(std::chrono::duration_cast<std::chrono::microseconds>(endFine - startFine).count());
@@ -161,28 +195,50 @@ int main()
     long long coarseAverage = std::accumulate(coarseTimes.begin(), coarseTimes.end(), 0LL) / coarseTimes.size(); 
     long long fineAverage = std::accumulate(fineTimes.begin(), fineTimes.end(), 0LL) / fineTimes.size();
 
-    // !Course-grained locking should be faster than fine-grained locking, as the latter requires locking and unlocking
+    // !coarse-grained locking should be faster than fine-grained locking, as the latter requires locking and unlocking
     // !for each node in the list, while the former only requires locking and unlocking for the entire list. The higher
     // !the number of nodes in the list, the more time fine-grained locking will take.
     // !HOWEVER, the degree of contention between the threads in attempting to access the list will also affect the results.
-    // !Course-grained locking here completely locks the list, so the second thread will have to wait for the first thread,
+    // !coarse-grained locking here completely locks the list, so the second thread will have to wait for the first thread,
     // !destroying any potential parallelism. Fine-grained locking allows for more parallelism, as the threads will only
     // !have to wait for each other when they are attempting to access the same node. Therefore, fine-grained locking may 
-    // !be faster here despite the lower overhead of course-grained locking.
+    // !be faster here despite the lower overhead of coarse-grained locking.
 
-    // Course-grained results w/ average:
+    
+    // coarse-grained results w/ average:
     std::cout << "Coarse-grained locking times: ";
     for (int i = 0; i < coarseTimes.size(); ++i) {
         std::cout << coarseTimes[i] << " ";
     }
-    std::cout << std::endl << "Average time for coarse-grained insertion: " << coarseAverage << " microseconds" << std::endl << std::endl;
+    // std::cout << std::endl << "Average time for coarse-grained insertion: " << coarseAverage << " microseconds" << std::endl << std::endl;
+    // Give time in seconds
+    std::cout << std::endl << "Average time for coarse-grained insertion: " << coarseAverage / 1000000.0 << " seconds" << std::endl << std::endl;
     
     // Fine-grained results w/ average:
     std::cout << "Fine-grained locking times: ";
     for (int i = 0; i < fineTimes.size(); ++i) {
         std::cout << fineTimes[i] << " ";
     }
-    std::cout << std::endl << "Average time for fine-grained insertion: " << fineAverage << " microseconds" << std::endl;
+    // std::cout << std::endl << "Average time for fine-grained insertion: " << fineAverage << " microseconds" << std::endl;
+    std::cout << std::endl << "Average time for fine-grained insertion: " << fineAverage / 1000000.0 << " seconds" << std::endl;
 
+    // // Check if lists are same
+    // Node* curr1 = list1.head;
+    // Node* curr2 = list2.head;
+    // bool same = true;
+    // while (curr1 && curr2) {
+    //     if (curr1->data != curr2->data) {
+    //         same = false;
+    //         break;
+    //     }
+    //     curr1 = curr1->next;
+    //     curr2 = curr2->next;
+    // }
+    // if (same) {
+    //     std::cout << "Lists are the same" << std::endl;
+    // } else {
+    //     std::cout << "Lists are different" << std::endl;
+    // }
+    
     return 0;
 }
