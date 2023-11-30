@@ -8,6 +8,7 @@
 struct Occurrence {
     std::string title;
     std::string line;
+    int count; // Set to -1 if not used
     Occurrence* next;
 
     Occurrence(const std::string& title, const std::string& line) : title(title), line(line), next(nullptr) {}
@@ -45,6 +46,7 @@ void process_file(const std::string& filename, std::unordered_map<std::string, O
                     hash_table[title] = new Occurrence(title, line);
                 } else {
                     Occurrence* newOccurrence = new Occurrence(title, line);
+                    newOccurrence->count = -1;
                     newOccurrence->next = hash_table[title];
                     hash_table[title] = newOccurrence;
                 }
@@ -84,6 +86,7 @@ void shuffle_hash_tables(std::vector<std::unordered_map<std::string, Occurrence*
                     occ->next = pair.second;
                 }
             }
+            hash_table->clear();
         }
     }
 
@@ -132,20 +135,30 @@ int main() {
     // Amalgamate all hash tables into hash_table1
 
     shuffle_hash_tables(hash_tables);
+    // Go through hash table; count occurrences, add new node to start of list that tracks count.
+    for (auto& pair : hash_table1) {
+        int count = 0;
+        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+            count++;
+        }
+        Occurrence* newOccurrence = new Occurrence(pair.first, "");
+        newOccurrence->count = count;
+        newOccurrence->next = pair.second;
+        pair.second = newOccurrence;
+    }
 
     std::cout<<"==============\nAmalgamate of Hash Table 1, 2, 3, and 4\n==============\n\n";
     for (auto& pair : hash_table1) {
-        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+        std::cout << "\n============================\nTitle: " << pair.first <<std::endl;
+        if(pair.second->count != -1) {
+            std::cout << "Number of Occurrences: " << pair.second->count << std::endl;
+        }
+        std::cout << "Occurrences:\n";
         for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
             std::cout << occ->line << "\n";
         }
-        std::cout << "\n";
+        std::cout << "\n============================\n\n";
     }
-
-
-    hash_table2.clear();
-    hash_table3.clear();
-    hash_table4.clear();
 
     // Free hash table memory
     for (const auto& pair : hash_table1) {
