@@ -11,7 +11,7 @@
 #include <list>
 #include <vector>
 #include <chrono>
-
+#include <thread>
 struct Occurrence {
     std::string title;
     std::string line;
@@ -70,14 +70,20 @@ void process_file(const std::string& filename, std::unordered_map<std::string, O
     file.close();
 }
 
-inline void map_files(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_tables, std::vector<std::string>& files) {
+void map_files(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_tables, std::vector<std::string>& files) {
     // Number of files MUST match number of hash tables
     if (hash_tables.size() != files.size()) {
         std::cout << "Error: number of hash tables does not match number of files\n";
         return;
     }
-    for (int i = 0; i < files.size(); i++) {
-        process_file(files[i], *hash_tables[i]);
+    std::vector<std::thread> threads;
+
+    for (int i = 0; i < files.size(); ++i) {
+        threads.push_back(std::thread(process_file, files[i], std::ref(*hash_tables[i])));
+    }
+
+    for (auto& th : threads) {
+        th.join();
     }
 }
 
