@@ -3,6 +3,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <list>
+#include <vector>
 
 struct Occurrence {
     std::string title;
@@ -56,109 +57,81 @@ void process_file(const std::string& filename, std::unordered_map<std::string, O
     file.close();
 }
 
+void map_files(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_tables, std::vector<std::string>& files) {
+    // Number of files MUST match number of hash tables
+    if (hash_tables.size() != files.size()) {
+        std::cout << "Error: number of hash tables does not match number of files\n";
+        return;
+    }
+    for (int i = 0; i < files.size(); i++) {
+        process_file(files[i], *hash_tables[i]);
+    }
+}
 
+void shuffle_hash_tables(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_tables) {
+    // Select first hash table as the one to shuffle into
+    auto hash_table1 = hash_tables[0];
+    for (auto hash_table : hash_tables) {
+        if (hash_table != hash_table1) {
+            for (auto &pair : *hash_table){
+                if (hash_table1->find(pair.first) == hash_table1->end()) {
+                    (*hash_table1)[pair.first] = pair.second;
+                } else {
+                    Occurrence* occ = (*hash_table1)[pair.first];
+                    while (occ->next != nullptr) {
+                        occ = occ->next;
+                    }
+                    occ->next = pair.second;
+                }
+            }
+        }
+    }
+
+}
 int main() {
     // Initialize hash tables: <title, list of occurrences>
     std::unordered_map<std::string, Occurrence*> hash_table1, hash_table2, hash_table3, hash_table4;
-    
-    // Process files, inserting into hash tables
-    process_file("machine1.txt", hash_table1);
-    process_file("machine2.txt", hash_table2);
-    process_file("machine3.txt", hash_table3);
-    process_file("machine4.txt", hash_table4);
+    std::vector<std::unordered_map<std::string, Occurrence*>*> hash_tables = {&hash_table1, &hash_table2, &hash_table3, &hash_table4};
+    std::vector<std::string> files = {"machine1.txt", "machine2.txt", "machine3.txt", "machine4.txt"};
 
-    std::cout<<"==============\nmachine1.txt\n==============\n\n";
-    for (auto& pair : hash_table1) {
-        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
-        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
-            std::cout << occ->line << "\n";
-        }
-        std::cout << "\n";
-    }
-    std::cout<<"==============\nmachine2.txt\n==============\n\n";
-    for (auto& pair : hash_table2) {
-        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
-        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
-            std::cout << occ->line << "\n";
-        }
-        std::cout << "\n";
-    }
-    std::cout<<"==============\nmachine3.txt\n==============\n\n";
-    for (auto& pair : hash_table3) {
-        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
-        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
-            std::cout << occ->line << "\n";
-        }
-        std::cout << "\n";
-    }
-    std::cout<<"==============\nmachine4.txt\n==============\n\n";
-    for (auto& pair : hash_table4) {
-        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
-        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
-            std::cout << occ->line << "\n";
-        }
-        std::cout << "\n";
-    }
+    map_files(hash_tables, files);
+
+    // std::cout<<"==============\nmachine1.txt\n==============\n\n";
+    // for (auto& pair : hash_table1) {
+    //     std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+    //     for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+    //         std::cout << occ->line << "\n";
+    //     }
+    //     std::cout << "\n";
+    // }
+    // std::cout<<"==============\nmachine2.txt\n==============\n\n";
+    // for (auto& pair : hash_table2) {
+    //     std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+    //     for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+    //         std::cout << occ->line << "\n";
+    //     }
+    //     std::cout << "\n";
+    // }
+    // std::cout<<"==============\nmachine3.txt\n==============\n\n";
+    // for (auto& pair : hash_table3) {
+    //     std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+    //     for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+    //         std::cout << occ->line << "\n";
+    //     }
+    //     std::cout << "\n";
+    // }
+    // std::cout<<"==============\nmachine4.txt\n==============\n\n";
+    // for (auto& pair : hash_table4) {
+    //     std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+    //     for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+    //         std::cout << occ->line << "\n";
+    //     }
+    //     std::cout << "\n";
+    // }
 
     // Amalgamate all hash tables into hash_table1
 
-    // First, combine hash_table2 into hash_table1
-    for (auto &pair : hash_table2){
-        if (hash_table1.find(pair.first) == hash_table1.end()) {
-            hash_table1[pair.first] = pair.second;
-        } else {
-            Occurrence* occ = hash_table1[pair.first];
-            while (occ->next != nullptr) {
-                occ = occ->next;
-            }
-            occ->next = pair.second;
-        }
-    }
-    
-
-    std::cout<<"==============\nAmalgamate of Hash Table 1 and Hash Table 2\n==============\n\n";
-    for (auto& pair : hash_table1) {
-        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
-        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
-            std::cout << occ->line << "\n";
-        }
-        std::cout << "\n";
-    }
-
-    // Second, combine hash_table3 into hash_table1
-    for (auto &pair : hash_table3){
-        if (hash_table1.find(pair.first) == hash_table1.end()) {
-            hash_table1[pair.first] = pair.second;
-        } else {
-            Occurrence* occ = hash_table1[pair.first];
-            while (occ->next != nullptr) {
-                occ = occ->next;
-            }
-            occ->next = pair.second;
-        }
-    }
-
-    std::cout<<"==============\nAmalgamate of Hash Table 1, 2, and 3\n==============\n\n";
-    for (auto& pair : hash_table1) {
-        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
-        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
-            std::cout << occ->line << "\n";
-        }
-        std::cout << "\n";
-    }
-
-    // Third, combine hash_table4 into hash_table1
-    for (auto &pair : hash_table4){
-        if (hash_table1.find(pair.first) == hash_table1.end()) {
-            hash_table1[pair.first] = pair.second;
-        } else {
-            Occurrence* occ = hash_table1[pair.first];
-            while (occ->next != nullptr) {
-                occ = occ->next;
-            }
-            occ->next = pair.second;
-        }
-    }
+    shuffle_hash_tables(hash_tables);
 
     std::cout<<"==============\nAmalgamate of Hash Table 1, 2, 3, and 4\n==============\n\n";
     for (auto& pair : hash_table1) {
@@ -169,6 +142,11 @@ int main() {
         std::cout << "\n";
     }
 
+
+    hash_table2.clear();
+    hash_table3.clear();
+    hash_table4.clear();
+
     // Free hash table memory
     for (const auto& pair : hash_table1) {
         Occurrence* occ = pair.second;
@@ -177,31 +155,7 @@ int main() {
             delete occ;
             occ = next;
         }
-    }
-    // for (const auto& pair : hash_table2) {
-    //     Occurrence* occ = pair.second;
-    //     while (occ != nullptr) {
-    //         Occurrence* next = occ->next;
-    //         delete occ;
-    //         occ = next;
-    //     }
-    // }
-    // for (const auto& pair : hash_table3) {
-    //     Occurrence* occ = pair.second;
-    //     while (occ != nullptr) {
-    //         Occurrence* next = occ->next;
-    //         delete occ;
-    //         occ = next;
-    //     }
-    // }
-    // for (const auto& pair : hash_table4) {
-    //     Occurrence* occ = pair.second;
-    //     while (occ != nullptr) {
-    //         Occurrence* next = occ->next;
-    //         delete occ;
-    //         occ = next;
-    //     }
-    // }
+}
 
     return 0;
 }
