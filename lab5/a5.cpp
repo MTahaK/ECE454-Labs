@@ -58,15 +58,17 @@ void process_file(const std::string& filename, std::unordered_map<std::string, O
 
 
 int main() {
+    // Initialize hash tables: <title, list of occurrences>
     std::unordered_map<std::string, Occurrence*> hash_table1, hash_table2, hash_table3, hash_table4;
     
+    // Process files, inserting into hash tables
     process_file("machine1.txt", hash_table1);
     process_file("machine2.txt", hash_table2);
     process_file("machine3.txt", hash_table3);
     process_file("machine4.txt", hash_table4);
 
     std::cout<<"==============\nmachine1.txt\n==============\n\n";
-    for (const auto& pair : hash_table1) {
+    for (auto& pair : hash_table1) {
         std::cout << "Title: " << pair.first << "\nOccurrences:\n";
         for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
             std::cout << occ->line << "\n";
@@ -74,7 +76,7 @@ int main() {
         std::cout << "\n";
     }
     std::cout<<"==============\nmachine2.txt\n==============\n\n";
-    for (const auto& pair : hash_table2) {
+    for (auto& pair : hash_table2) {
         std::cout << "Title: " << pair.first << "\nOccurrences:\n";
         for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
             std::cout << occ->line << "\n";
@@ -82,7 +84,7 @@ int main() {
         std::cout << "\n";
     }
     std::cout<<"==============\nmachine3.txt\n==============\n\n";
-    for (const auto& pair : hash_table3) {
+    for (auto& pair : hash_table3) {
         std::cout << "Title: " << pair.first << "\nOccurrences:\n";
         for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
             std::cout << occ->line << "\n";
@@ -90,7 +92,76 @@ int main() {
         std::cout << "\n";
     }
     std::cout<<"==============\nmachine4.txt\n==============\n\n";
-    for (const auto& pair : hash_table4) {
+    for (auto& pair : hash_table4) {
+        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+            std::cout << occ->line << "\n";
+        }
+        std::cout << "\n";
+    }
+
+    // Amalgamate all hash tables into hash_table1
+
+    // First, combine hash_table2 into hash_table1
+    for (auto &pair : hash_table2){
+        if (hash_table1.find(pair.first) == hash_table1.end()) {
+            hash_table1[pair.first] = pair.second;
+        } else {
+            Occurrence* occ = hash_table1[pair.first];
+            while (occ->next != nullptr) {
+                occ = occ->next;
+            }
+            occ->next = pair.second;
+        }
+    }
+    
+
+    std::cout<<"==============\nAmalgamate of Hash Table 1 and Hash Table 2\n==============\n\n";
+    for (auto& pair : hash_table1) {
+        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+            std::cout << occ->line << "\n";
+        }
+        std::cout << "\n";
+    }
+
+    // Second, combine hash_table3 into hash_table1
+    for (auto &pair : hash_table3){
+        if (hash_table1.find(pair.first) == hash_table1.end()) {
+            hash_table1[pair.first] = pair.second;
+        } else {
+            Occurrence* occ = hash_table1[pair.first];
+            while (occ->next != nullptr) {
+                occ = occ->next;
+            }
+            occ->next = pair.second;
+        }
+    }
+
+    std::cout<<"==============\nAmalgamate of Hash Table 1, 2, and 3\n==============\n\n";
+    for (auto& pair : hash_table1) {
+        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+            std::cout << occ->line << "\n";
+        }
+        std::cout << "\n";
+    }
+
+    // Third, combine hash_table4 into hash_table1
+    for (auto &pair : hash_table4){
+        if (hash_table1.find(pair.first) == hash_table1.end()) {
+            hash_table1[pair.first] = pair.second;
+        } else {
+            Occurrence* occ = hash_table1[pair.first];
+            while (occ->next != nullptr) {
+                occ = occ->next;
+            }
+            occ->next = pair.second;
+        }
+    }
+
+    std::cout<<"==============\nAmalgamate of Hash Table 1, 2, 3, and 4\n==============\n\n";
+    for (auto& pair : hash_table1) {
         std::cout << "Title: " << pair.first << "\nOccurrences:\n";
         for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
             std::cout << occ->line << "\n";
@@ -107,30 +178,30 @@ int main() {
             occ = next;
         }
     }
-    for (const auto& pair : hash_table2) {
-        Occurrence* occ = pair.second;
-        while (occ != nullptr) {
-            Occurrence* next = occ->next;
-            delete occ;
-            occ = next;
-        }
-    }
-    for (const auto& pair : hash_table3) {
-        Occurrence* occ = pair.second;
-        while (occ != nullptr) {
-            Occurrence* next = occ->next;
-            delete occ;
-            occ = next;
-        }
-    }
-    for (const auto& pair : hash_table4) {
-        Occurrence* occ = pair.second;
-        while (occ != nullptr) {
-            Occurrence* next = occ->next;
-            delete occ;
-            occ = next;
-        }
-    }
+    // for (const auto& pair : hash_table2) {
+    //     Occurrence* occ = pair.second;
+    //     while (occ != nullptr) {
+    //         Occurrence* next = occ->next;
+    //         delete occ;
+    //         occ = next;
+    //     }
+    // }
+    // for (const auto& pair : hash_table3) {
+    //     Occurrence* occ = pair.second;
+    //     while (occ != nullptr) {
+    //         Occurrence* next = occ->next;
+    //         delete occ;
+    //         occ = next;
+    //     }
+    // }
+    // for (const auto& pair : hash_table4) {
+    //     Occurrence* occ = pair.second;
+    //     while (occ != nullptr) {
+    //         Occurrence* next = occ->next;
+    //         delete occ;
+    //         occ = next;
+    //     }
+    // }
 
     return 0;
 }
