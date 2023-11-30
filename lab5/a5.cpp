@@ -12,7 +12,7 @@ struct Occurrence {
     Occurrence(const std::string& title, const std::string& line) : title(title), line(line), next(nullptr) {}
 };
 
-void processFile(const std::string& filename, std::unordered_map<std::string, Occurrence*>& hashTable) {
+void process_file(const std::string& filename, std::unordered_map<std::string, Occurrence*>& hash_table) {
     std::ifstream file(filename);
     std::string line;
 
@@ -40,12 +40,12 @@ void processFile(const std::string& filename, std::unordered_map<std::string, Oc
                 
 
                 // Insert into hash table
-                if (hashTable.find(title) == hashTable.end()) {
-                    hashTable[title] = new Occurrence(title, line);
+                if (hash_table.find(title) == hash_table.end()) {
+                    hash_table[title] = new Occurrence(title, line);
                 } else {
                     Occurrence* newOccurrence = new Occurrence(title, line);
-                    newOccurrence->next = hashTable[title];
-                    hashTable[title] = newOccurrence;
+                    newOccurrence->next = hash_table[title];
+                    hash_table[title] = newOccurrence;
                 }
             } else if (isTitle) {
                 title += " " + word;
@@ -58,12 +58,39 @@ void processFile(const std::string& filename, std::unordered_map<std::string, Oc
 
 
 int main() {
-    std::unordered_map<std::string, Occurrence*> hashTable;
+    std::unordered_map<std::string, Occurrence*> hash_table1, hash_table2, hash_table3, hash_table4;
     
+    process_file("machine1.txt", hash_table1);
+    process_file("machine2.txt", hash_table2);
+    process_file("machine3.txt", hash_table3);
+    process_file("machine4.txt", hash_table4);
 
-    processFile("machine4.txt", hashTable);
-
-    for (const auto& pair : hashTable) {
+    std::cout<<"==============\nmachine1.txt\n==============\n\n";
+    for (const auto& pair : hash_table1) {
+        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+            std::cout << occ->line << "\n";
+        }
+        std::cout << "\n";
+    }
+    std::cout<<"==============\nmachine2.txt\n==============\n\n";
+    for (const auto& pair : hash_table2) {
+        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+            std::cout << occ->line << "\n";
+        }
+        std::cout << "\n";
+    }
+    std::cout<<"==============\nmachine3.txt\n==============\n\n";
+    for (const auto& pair : hash_table3) {
+        std::cout << "Title: " << pair.first << "\nOccurrences:\n";
+        for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
+            std::cout << occ->line << "\n";
+        }
+        std::cout << "\n";
+    }
+    std::cout<<"==============\nmachine4.txt\n==============\n\n";
+    for (const auto& pair : hash_table4) {
         std::cout << "Title: " << pair.first << "\nOccurrences:\n";
         for (Occurrence* occ = pair.second; occ != nullptr; occ = occ->next) {
             std::cout << occ->line << "\n";
@@ -71,8 +98,32 @@ int main() {
         std::cout << "\n";
     }
 
-    // Remember to free allocated memory
-    for (const auto& pair : hashTable) {
+    // Free hash table memory
+    for (const auto& pair : hash_table1) {
+        Occurrence* occ = pair.second;
+        while (occ != nullptr) {
+            Occurrence* next = occ->next;
+            delete occ;
+            occ = next;
+        }
+    }
+    for (const auto& pair : hash_table2) {
+        Occurrence* occ = pair.second;
+        while (occ != nullptr) {
+            Occurrence* next = occ->next;
+            delete occ;
+            occ = next;
+        }
+    }
+    for (const auto& pair : hash_table3) {
+        Occurrence* occ = pair.second;
+        while (occ != nullptr) {
+            Occurrence* next = occ->next;
+            delete occ;
+            occ = next;
+        }
+    }
+    for (const auto& pair : hash_table4) {
         Occurrence* occ = pair.second;
         while (occ != nullptr) {
             Occurrence* next = occ->next;
