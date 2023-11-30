@@ -5,7 +5,7 @@ Directed by Hidetaka Miyazaki with worldbuilding contributions from fantasy writ
 Planning for <Elden Ring> began post-release of "The Ringed City" DLC for Dark Souls III, with Miyazaki directing alongside the development of Sekiro: Shadows Die Twice. 
 The design team focused on environmental scale, role-playing, and storytelling for <Elden Ring>, as the team's first open-world game. 
 Players start <Elden Ring> by choosing a character class, determining starting spells, equipment, and attributes.
-Combat in <ELden Ring> can be melee or ranged, with the ability to dodge or block enemy attacks and enhance weapons with spells.
+Combat in <Elden Ring> can be melee or ranged, with the ability to dodge or block enemy attacks and enhance weapons with spells.
 A derivative of the 'Soulslike' format that FromSoftware pioneered, <Elden Ring> also introduces jumping, jump attacks, and crouching mechanics.
 Set in the Lands Between, previously ruled by the immortal Queen Marika, the keeper of the Elden Ring, <Elden Ring> unfolds a story where the player, as a Tarnished, is summoned to repair the Elden Ring and become the Elden Lord. On their journey, players face-off against Shardbearers: powerful legends, often of demigod status, that have each seized the power of a shard of the shattered Elden Ring.
 <Elden Ring> received critical acclaim for its world, gameplay systems, and setting, despite some technical performance issues. 
