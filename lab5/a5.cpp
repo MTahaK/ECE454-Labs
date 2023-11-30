@@ -70,7 +70,8 @@ void process_file(const std::string& filename, std::unordered_map<std::string, O
     file.close();
 }
 
-void map_files(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_tables, std::vector<std::string>& files) {
+// Multi-threaded version
+inline void map_files_multi(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_tables, std::vector<std::string>& files) {
     // Number of files MUST match number of hash tables
     if (hash_tables.size() != files.size()) {
         std::cout << "Error: number of hash tables does not match number of files\n";
@@ -87,6 +88,17 @@ void map_files(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_
     }
 }
 
+// Single-threaded version
+inline void map_files(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_tables, std::vector<std::string>& files) {
+    // Number of files MUST match number of hash tables
+    if (hash_tables.size() != files.size()) {
+        std::cout << "Error: number of hash tables does not match number of files\n";
+        return;
+    }
+    for (int i = 0; i < files.size(); i++) {
+        process_file(files[i], *hash_tables[i]);
+    }
+}
 void shuffle_hash_tables(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_tables) {
     // Select first hash table as the one to shuffle into
     auto hash_table1 = hash_tables[0];
@@ -111,7 +123,13 @@ void shuffle_hash_tables(std::vector<std::unordered_map<std::string, Occurrence*
     }
 
 }
-int main() {
+int main(int argc , char* argv[]) {
+    if(argc != 3){
+        std::cout << "Usage: ./a5 <keyword> <0 or 1 (single or multi-threaded)>\n";
+        return 0;
+    }
+    std::string keyword = argv[1];
+    int mode = atoi(argv[2]);
     // Initialize hash tables: <title, list of occurrences>
     std::unordered_map<std::string, Occurrence*> hash_table1, hash_table2, hash_table3, hash_table4;
     std::vector<std::unordered_map<std::string, Occurrence*>*> hash_tables = {&hash_table1, &hash_table2, &hash_table3, &hash_table4};
@@ -120,7 +138,11 @@ int main() {
     // Start timer
     auto start = std::chrono::high_resolution_clock::now();
     // Map files to hash tables
-    map_files(hash_tables, files);
+    if(mode == 1){
+        map_files_multi(hash_tables, files);
+    }
+    else if(mode == 0)
+        map_files(hash_tables, files);
 
     // Amalgamate all hash tables into hash_table1
     shuffle_hash_tables(hash_tables);
@@ -139,8 +161,13 @@ int main() {
     }
 
     // Get the count of one of the titles
-    std::string title = "Elden Ring";
+    std::string title = keyword;
     // Access hash table, get count from first node in pair.second list
+    // First, check that title exists in hash table
+    if (hash_table1.find(title) == hash_table1.end()) {
+        std::cout << "Title not found\n";
+        return 0;
+    }
     int count = hash_table1[title]->count; 
     std::cout << "Number of occurrences of " << title << ": " << count << std::endl;
     // End timer
