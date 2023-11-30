@@ -1,3 +1,9 @@
+// ECE454 A5
+// By: Taha Khokhar, ID: 1005813069
+// Group #30
+// Lab Session 02
+// Date: 2023-11-30
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -64,7 +70,7 @@ void process_file(const std::string& filename, std::unordered_map<std::string, O
     file.close();
 }
 
-void map_files(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_tables, std::vector<std::string>& files) {
+inline void map_files(std::vector<std::unordered_map<std::string, Occurrence*>*>& hash_tables, std::vector<std::string>& files) {
     // Number of files MUST match number of hash tables
     if (hash_tables.size() != files.size()) {
         std::cout << "Error: number of hash tables does not match number of files\n";

@@ -23,3 +23,16 @@ Computed on the "Elden Ring" title, which occurred 14 times.
 | 4           | 0.000214019        | 214.019             |
 | 5           | 0.00021626         | 216.26              |
 | **Average** | 0.000222251        | 222.251             |
+
+## Part D:
+### Optimizations Applied:
+- Function Inlining (inlined mapping wrapper)
+
+| Run #       | Execution Time (s) | Execution Time (µs) |
+| ----------- | ------------------ | ------------------- |
+| 1           | 0.000193849        | 193.849             |
+| 2           | 0.000204539        | 204.539             |
+| 3           | 0.000198659        | 198.659             |
+| 4           | 0.00022213         | 222.130             |
+| 5           | 0.00020928         | 209.280             |
+| **Average** | 0.000205691        | 205.691             |
